@@ -15,25 +15,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef laa_shared_h
-#define laa_shared_h
+#include "viewmanager.h"
 
-#define SDL2WRAP_STATIC
-#include <sdl2wrap/sdl2stl.h>
-
-// clang-format off
-#include "imgui.h"
-#include "examples/imgui_impl_opengl3.h"
-#include "examples/imgui_impl_sdl.h"
-#include "misc/cpp/imgui_stdlib.h"
-// clang-format on
-
-#include <GL/gl3w.h>
-
-#include <string>
-#include <complex>
-#include <valarray>
-
-namespace s2 = sdl2wrap;
-
-#endif //laa_shared_h
+void ViewManager::update() noexcept
+{
+    audioHandler.update();
+}

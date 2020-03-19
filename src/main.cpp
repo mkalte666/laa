@@ -16,6 +16,7 @@
  */
 
 #include "shared.h"
+#include "viewmanager.h"
 
 int main(int, char**)
 {
@@ -40,9 +41,10 @@ int main(int, char**)
         return -1;
     }
     auto context = contextRes.extractValue();
+    s2::Video::GL::setSwapInterval(1);
 
     // imgui
-    auto gl3wres = gl3wInit2((GL3WGetProcAddressProc)&SDL_GL_GetProcAddress);
+    auto gl3wres = gl3wInit2(reinterpret_cast<GL3WGetProcAddressProc>(&SDL_GL_GetProcAddress));
     (void)gl3wres;
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -50,9 +52,14 @@ int main(int, char**)
     ImGui_ImplOpenGL3_Init("#version 100");
 
     bool running = true;
+    ViewManager manager;
+
     while (running) {
         s2::Event e;
         while (s2::Input::pollEvent(e)) {
+            if (ImGui_ImplSDL2_ProcessEvent(&e)) {
+                continue;
+            }
             if (e.type == s2::EventType::Quit) {
                 running = false;
             }
@@ -64,6 +71,8 @@ int main(int, char**)
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window.get());
         ImGui::NewFrame();
+
+        manager.update();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
