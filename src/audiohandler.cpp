@@ -70,13 +70,30 @@ void AudioHandler::update() noexcept
             startAudio();
         }
     } else {
-        if (ImGui::Button("Restart Audio")) {
-            status = "Restarting is not implemented yet";
+        if (ImGui::Button("Stop Audio")) {
+            status = "Stopping is not implemented yet";
         }
     }
 
     ImGui::Text("Status: %s", status.c_str());
     ImGui::End();
+}
+
+float AudioHandler::genNextPlaybackSample()
+{
+    switch (functionGeneratorType) {
+    case FunctionGeneratorType::Silence:
+        break;
+    case FunctionGeneratorType::WhiteNoise:
+        return static_cast<float>(WhiteNoiseGenerator::nextSample());
+    case FunctionGeneratorType::PinkNoise:
+        return static_cast<float>(pinkNoise.nextSample());
+    case FunctionGeneratorType::Sine:
+        return static_cast<float>(sineGenerator.nextSample());
+        break;
+    }
+
+    return 0.0F;
 }
 
 void AudioHandler::startAudio()
@@ -93,6 +110,7 @@ void AudioHandler::startAudio()
     want.format = AUDIO_F32;
     want.channels = 2;
     want.samples = config.samples;
+    want.userdata = this;
 
     auto wantPlayback = want;
     wantPlayback.callback = playbackCallbackStatic;
@@ -106,6 +124,7 @@ void AudioHandler::startAudio()
         return;
     }
     playbackId = playbackRes.extractValue();
+    s2::Audio::pauseDevice(playbackId, false);
 
     s2::Audio::Spec gotCapture;
     auto captureRes = s2::Audio::openDevice(config.playbackName.c_str(), false, wantCapture, gotCapture, s2::AudioAllow::AnyChange);
@@ -124,8 +143,10 @@ void AudioHandler::playbackCallback(Uint8* stream, int len)
 {
     auto count = static_cast<size_t>(len) / sizeof(float);
     auto* floatPtr = reinterpret_cast<float*>(stream);
-    for (auto i = 0ull; i < count; i++) {
-        floatPtr[i] = 0.0F;
+    for (auto i = 0ull; i + 1 < count; i += 2) {
+        float f = genNextPlaybackSample();
+        floatPtr[i] = f;
+        floatPtr[i + 1] = f;
     }
 }
 

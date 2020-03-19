@@ -2,10 +2,12 @@
 // Created by mkalte on 19/03/2020.
 //
 
-#ifndef LAA_WHITENOISEGENERATOR_H
-#define LAA_WHITENOISEGENERATOR_H
+#ifndef laa_whitenoisegenerator_h
+#define laa_whitenoisegenerator_h
 
 class WhiteNoiseGenerator {
+public:
+    static double nextSample() noexcept;
 };
 
-#endif //LAA_WHITENOISEGENERATOR_H
+#endif //laa_whitenoisegenerator_h

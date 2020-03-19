@@ -33,6 +33,7 @@
 #include <string>
 #include <complex>
 #include <valarray>
+#include <random>
 
 namespace s2 = sdl2wrap;
 

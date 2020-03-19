@@ -18,6 +18,8 @@
 #ifndef laa_audiohandler_h
 #define laa_audiohandler_h
 
+#include "dsp/pinknoisegenerator.h"
+#include "dsp/sinegenerator.h"
 #include "shared.h"
 
 struct AudioConfig {
@@ -26,6 +28,13 @@ struct AudioConfig {
     int referenceChannel = 0;
     int sampleRate = 48000;
     Uint16 samples = 4096;
+};
+
+enum class FunctionGeneratorType {
+    Silence,
+    WhiteNoise,
+    PinkNoise,
+    Sine
 };
 
 class AudioHandler {
@@ -40,6 +49,8 @@ public:
     void update() noexcept;
 
 private:
+    float genNextPlaybackSample();
+
     void startAudio();
     void playbackCallback(Uint8* stream, int len);
     void captureCallback(Uint8* stream, int len);
@@ -52,6 +63,9 @@ private:
     bool running = false;
     s2::Audio::DeviceID captureId = {};
     s2::Audio::DeviceID playbackId = {};
+    PinkNoiseGenerator pinkNoise;
+    SineGenerator sineGenerator;
+    FunctionGeneratorType functionGeneratorType = FunctionGeneratorType::Sine;
 };
 
 #endif //laa_audiohandler_h
