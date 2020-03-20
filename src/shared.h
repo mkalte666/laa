@@ -32,7 +32,7 @@
 
 #include <string>
 #include <complex>
-#include <valarray>
+#include <vector>
 #include <random>
 
 namespace s2 = sdl2wrap;

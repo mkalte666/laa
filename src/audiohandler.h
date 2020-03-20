@@ -29,7 +29,7 @@ struct AudioConfig {
     size_t referenceChannel = 0;
     size_t inputChannel = 1;
     int sampleRate = 48000;
-    Uint16 samples = 2048;
+    Uint16 samples = 4096;
 };
 
 enum class FunctionGeneratorType {

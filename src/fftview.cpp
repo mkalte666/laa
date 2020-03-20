@@ -18,30 +18,17 @@
 #include "fftview.h"
 #include "dsp/hamming.h"
 
-#include "plot.h"
 
 void FftView::update(StateManager& stateManager)
 {
-    PlotConfig config;
-    auto avgFftInput = stateManager.getLive().avgFftInput;
-    config.size = ImVec2(500.0F, 300.0F);
-    config.min = 0.0F;
-    config.max = 10.0F;
-    config.count = avgFftInput.size() / 2;
+    const auto& liveState = stateManager.getLive();
+    std::vector<float> fMag;
+    fMag.resize(liveState.avgFftInput.size());
+    for (size_t i = 0ul; i < fMag.size(); i++) {
+        fMag[i] = static_cast<float>(std::abs(liveState.avgFftInput[i]));
+    }
 
-    config.callback = [&](size_t idx) {
-        return std::abs(avgFftInput[idx]);
-    };
-
-    PlotConfig config2 = config;
-    config2.min = -10.0;
-    config2.max = 10.0;
-    config2.callback = [&](size_t idx) {
-        return std::arg(avgFftInput[idx]);
-    };
 
     ImGui::Begin("FFT");
-    Plot(config);
-    Plot(config2);
     ImGui::End();
 }
