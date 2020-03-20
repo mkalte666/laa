@@ -43,7 +43,7 @@ add_executable(laatool
         src/audiohandler.cpp
         src/audiohandler.h
         src/dsp/whitenoisegenerator.cpp
-        src/dsp/whitenoisegenerator.h src/dsp/pinknoisegenerator.cpp src/dsp/pinknoisegenerator.h src/dsp/sinegenerator.cpp src/dsp/sinegenerator.h src/dsp/fft.h src/fftview.cpp src/fftview.h)
+        src/dsp/whitenoisegenerator.h src/dsp/pinknoisegenerator.cpp src/dsp/pinknoisegenerator.h src/dsp/sinegenerator.cpp src/dsp/sinegenerator.h src/dsp/fft.h src/fftview.cpp src/fftview.h src/dsp/hamming.h)
 
 target_link_libraries(laatool PRIVATE imgui gl3w sdl2wrap::sdl2 OpenGL::GL)
 enableStrictOptions(laatool)

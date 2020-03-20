@@ -17,7 +17,9 @@ private:
     std::vector<double> reference;
     std::vector<double> input;
     ComplexVec refFft;
+    ComplexVec refFftAvg;
     ComplexVec inFft;
+    ComplexVec inFftAvg;
     ComplexVec H;
     std::vector<double> h;
 };

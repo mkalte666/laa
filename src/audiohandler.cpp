@@ -202,7 +202,7 @@ void AudioHandler::startAudio()
     s2::Audio::pauseDevice(playbackId, false);
 
     s2::Audio::Spec gotCapture;
-    auto captureRes = s2::Audio::openDevice(config.playbackName.c_str(), true, wantCapture, gotCapture, s2::AudioAllow::AnyChange);
+    auto captureRes = s2::Audio::openDevice(config.captureName.c_str(), true, wantCapture, gotCapture, s2::AudioAllow::AnyChange);
     if (!captureRes) {
         status = captureRes.getError().msg;
         s2::Audio::closeDevice(playbackId);
