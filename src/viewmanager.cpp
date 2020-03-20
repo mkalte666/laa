@@ -20,4 +20,5 @@
 void ViewManager::update() noexcept
 {
     audioHandler.update();
+    fftView.update(audioHandler);
 }

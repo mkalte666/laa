@@ -45,6 +45,16 @@ AudioHandler::AudioHandler() noexcept
     if (s2::Audio::getNumDevices(true) > 0) {
         config.captureName = s2::Audio::getDeviceName(0, true);
     }
+
+    if (s2::Audio::getNumDrivers() > 0) {
+        config.driver = s2::Audio::getDriver(0);
+    }
+
+    auto res = s2::Audio::init(config.driver.c_str());
+    if (!res) {
+        SDL2WRAP_ASSERT(false);
+    }
+    driverChosen = true;
 }
 
 AudioHandler::~AudioHandler() noexcept
@@ -58,6 +68,22 @@ AudioHandler::~AudioHandler() noexcept
 void AudioHandler::update() noexcept
 {
     ImGui::Begin("Audio Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+    if (!running) {
+        if (ImGui::BeginCombo("Driver", config.driver.c_str())) {
+            for (int i = 0; i < s2::Audio::getNumDrivers(); i++) {
+                ImGui::PushID(i);
+                if (ImGui::Selectable(s2::Audio::getDriver(i))) {
+                    s2::Audio::quit();
+                    config.driver = s2::Audio::getDriver(i);
+                    auto res = s2::Audio::init(config.driver.c_str());
+                    SDL2WRAP_ASSERT(res.hasValue());
+                }
+                ImGui::PopID();
+            }
+            ImGui::EndCombo();
+        }
+    }
 
     if (ImGui::BeginCombo("Playback Device", config.playbackName.c_str())) {
         for (int i = 0; i < s2::Audio::getNumDevices(false); i++) {
@@ -153,7 +179,8 @@ void AudioHandler::startAudio()
     wipReferenceSignal.reserve(config.samples);
     wipInputSignal.reserve(config.samples);
 
-    s2::Audio::Spec want = {};
+    s2::Audio::Spec want;
+    SDL_zero(want);
     want.freq = config.sampleRate;
     want.format = AUDIO_F32;
     want.channels = 2;
@@ -175,7 +202,7 @@ void AudioHandler::startAudio()
     s2::Audio::pauseDevice(playbackId, false);
 
     s2::Audio::Spec gotCapture;
-    auto captureRes = s2::Audio::openDevice(config.playbackName.c_str(), false, wantCapture, gotCapture, s2::AudioAllow::AnyChange);
+    auto captureRes = s2::Audio::openDevice(config.playbackName.c_str(), true, wantCapture, gotCapture, s2::AudioAllow::AnyChange);
     if (!captureRes) {
         status = captureRes.getError().msg;
         s2::Audio::closeDevice(playbackId);
@@ -185,7 +212,7 @@ void AudioHandler::startAudio()
     s2::Audio::pauseDevice(captureId, false);
 
     running = true;
-    status = "Running";
+    status = std::string("Running (") + s2::Audio::getCurrentDriver() + ")";
 }
 
 void AudioHandler::playbackCallback(Uint8* stream, int len)
@@ -206,7 +233,7 @@ void AudioHandler::captureCallback(Uint8* stream, int len)
     auto count = static_cast<size_t>(len) / sizeof(float);
     auto* floatPtr = reinterpret_cast<float*>(stream);
 
-    for (auto i = 0ull; i + 1 < count; i++) {
+    for (auto i = 0ull; i + 1 < count; i += 2) {
         wipReferenceSignal.push_back(floatPtr[i + config.referenceChannel]);
         wipInputSignal.push_back(floatPtr[i + config.inputChannel]);
 
@@ -235,7 +262,7 @@ size_t AudioHandler::getFrameCount() const noexcept
     return frameCount;
 }
 
-void AudioHandler::getFrame(std::vector<double> reference, std::vector<double> input) const noexcept
+void AudioHandler::getFrame(std::vector<double>& reference, std::vector<double>& input) const noexcept
 {
     s2::Audio::lockDevice(captureId);
     reference = currentReferenceSignal;

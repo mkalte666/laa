@@ -23,12 +23,13 @@
 #include "shared.h"
 
 struct AudioConfig {
+    std::string driver = "";
     std::string captureName = "None";
     std::string playbackName = "None";
     size_t referenceChannel = 0;
     size_t inputChannel = 1;
     int sampleRate = 48000;
-    Uint16 samples = 4096;
+    Uint16 samples = 2048;
 };
 
 enum class FunctionGeneratorType {
@@ -51,7 +52,7 @@ public:
     void update() noexcept;
 
     size_t getFrameCount() const noexcept;
-    void getFrame(std::vector<double> reference, std::vector<double> input) const noexcept;
+    void getFrame(std::vector<double>& reference, std::vector<double>& input) const noexcept;
 
 private:
     float genNextPlaybackSample();
@@ -64,6 +65,7 @@ private:
 
 private:
     AudioConfig config = {};
+    bool driverChosen = false;
     std::string status = "Not Started";
     bool running = false;
     s2::Audio::DeviceID captureId = {};

@@ -19,6 +19,7 @@
 #define laa_viewmanager_h
 
 #include "audiohandler.h"
+#include "fftview.h"
 #include "shared.h"
 
 class ViewManager {
@@ -27,6 +28,7 @@ public:
 
 private:
     AudioHandler audioHandler = {};
+    FftView fftView = {};
 };
 
 #endif //laa_viewmanager_h
