@@ -15,11 +15,17 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "viewmanager.h"
+#ifndef laa_avg_h
+#define laa_avg_h
 
-void ViewManager::update() noexcept
+#include <vector>
+
+template <class T>
+inline void mean(std::vector<T>& dst, const std::vector<T>& in)
 {
-    audioHandler.update();
-    stateManager.update(audioHandler);
-    fftView.update(stateManager);
+    for (size_t i = 0ull; i < in.size(); i++) {
+        dst[i] = in[i] / 2.0;
+    }
 }
+
+#endif //laa_avg_h

@@ -15,11 +15,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "viewmanager.h"
+#ifndef laa_plot_h
+#define laa_plot_h
 
-void ViewManager::update() noexcept
-{
-    audioHandler.update();
-    stateManager.update(audioHandler);
-    fftView.update(stateManager);
-}
+#include "shared.h"
+#include <functional>
+
+struct PlotConfig {
+    double min = 0.0;
+    double max = 1.0;
+    double center = 0.5;
+
+    ImVec2 size = ImVec2(0.0F, 0.0F);
+
+    std::string xLabel = "x";
+    std::string yLabel = "y";
+
+    std::function<double(size_t index)> callback;
+    size_t count;
+};
+
+void Plot(const PlotConfig& config) noexcept;
+
+#endif //laa_plot_h

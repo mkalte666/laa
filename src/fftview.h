@@ -20,21 +20,13 @@
 
 #include "audiohandler.h"
 #include "dsp/fft.h"
+#include "statemanager.h"
 
 class FftView {
 public:
-    void update(AudioHandler& audioHandler);
+    void update(StateManager& stateManager);
 
 private:
-    size_t lastFrame = 0;
-    std::vector<double> reference;
-    std::vector<double> input;
-    ComplexVec refFft;
-    ComplexVec refFftAvg;
-    ComplexVec inFft;
-    ComplexVec inFftAvg;
-    ComplexVec H;
-    std::vector<double> h;
 };
 
 #endif //LAA_FFTVIEW_H

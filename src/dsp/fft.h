@@ -20,6 +20,8 @@
 
 #include "../shared.h"
 
+using Real = double;
+using RealVec = std::vector<Real>;
 using Complex = std::complex<double>;
 using ComplexVec = std::vector<Complex>;
 
@@ -77,7 +79,7 @@ inline ComplexVec fft(const ComplexVec& x)
     return result;
 }
 
-inline ComplexVec fftReal(const std::vector<double>& x)
+inline ComplexVec fftReal(const RealVec& x)
 {
     ComplexVec result;
     realToComplex(result, x);
@@ -93,10 +95,10 @@ inline void ifftInplace(ComplexVec& x)
 
     fftInplace(x);
 
-    auto dSize = static_cast<double>(x.size());
+    auto dSize = static_cast<Real>(x.size());
     for (auto&& e : x) {
         e = std::conj(e);
-        e /= static_cast<double>(dSize);
+        e /= static_cast<Real>(dSize);
     }
 }
 
@@ -107,10 +109,10 @@ inline ComplexVec ifft(const ComplexVec& x)
     return result;
 }
 
-inline std::vector<double> ifftReal(const ComplexVec& x)
+inline RealVec ifftReal(const ComplexVec& x)
 {
-    std::vector<double> result;
-    complexToReal<double>(result, ifft(x));
+    RealVec result;
+    complexToReal<Real>(result, ifft(x));
     return result;
 }
 

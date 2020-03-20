@@ -18,7 +18,32 @@
 #ifndef laa_statemanager_h
 #define laa_statemanager_h
 
+#include "audiohandler.h"
+#include "dsp/avg.h"
+#include "dsp/fft.h"
+#include "dsp/hamming.h"
+
+struct State {
+    RealVec reference = {};
+    RealVec input = {};
+    ComplexVec fftReference = {};
+    ComplexVec fftInput = {};
+    ComplexVec avgFftReference = {};
+    ComplexVec avgFftInput = {};
+    ComplexVec H = {};
+    ComplexVec avgH = {};
+    ComplexVec h = {};
+};
+
 class StateManager {
+public:
+    void update(AudioHandler& audioHandler);
+
+    const State& getLive() const noexcept;
+
+private:
+    size_t lastFrame = 0;
+    State liveState = {};
 };
 
 #endif //laa_statemanager_h

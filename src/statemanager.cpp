@@ -16,3 +16,36 @@
  */
 
 #include "statemanager.h"
+
+void StateManager::update(AudioHandler& audioHandler)
+{
+    if (audioHandler.getFrameCount() > lastFrame) {
+        lastFrame = audioHandler.getFrameCount();
+        audioHandler.getFrame(liveState.reference, liveState.input);
+        hamming(liveState.reference);
+        hamming(liveState.input);
+
+        liveState.fftReference = fftReal(liveState.reference);
+        liveState.fftInput = fftReal(liveState.input);
+
+        liveState.H.resize(liveState.reference.size());
+        liveState.avgH.resize(liveState.reference.size());
+        liveState.avgFftReference.resize(liveState.reference.size());
+        liveState.avgFftInput.resize(liveState.reference.size());
+
+        mean(liveState.avgFftReference, liveState.fftReference);
+        mean(liveState.avgFftInput, liveState.fftInput);
+
+        for (size_t i = 0; i < liveState.avgFftInput.size(); i++) {
+            liveState.H[i] = liveState.fftReference[i] / liveState.fftInput[i];
+        }
+        mean(liveState.avgH, liveState.H);
+
+        liveState.h = ifft(liveState.H);
+    }
+}
+
+const State& StateManager::getLive() const noexcept
+{
+    return liveState;
+}
