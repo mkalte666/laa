@@ -17,6 +17,25 @@
 
 #include "audiohandler.h"
 
+std::string getStr(const FunctionGeneratorType& gen) noexcept
+{
+    switch (gen) {
+    case FunctionGeneratorType::Silence:
+        return "Silence";
+
+    case FunctionGeneratorType::WhiteNoise:
+        return "White Noise";
+
+    case FunctionGeneratorType::PinkNoise:
+        return "Pink Noise";
+
+    case FunctionGeneratorType::Sine:
+        return "Sine";
+    }
+
+    return "";
+}
+
 AudioHandler::AudioHandler() noexcept
 {
     if (s2::Audio::getNumDevices(false) > 0) {
@@ -76,6 +95,32 @@ void AudioHandler::update() noexcept
     }
 
     ImGui::Text("Status: %s", status.c_str());
+
+    ImGui::Separator();
+    if (ImGui::BeginCombo("Select Signal", getStr(functionGeneratorType).c_str())) {
+        if (ImGui::Selectable(getStr(FunctionGeneratorType::Silence).c_str(), functionGeneratorType == FunctionGeneratorType::Silence)) {
+            functionGeneratorType = FunctionGeneratorType::Silence;
+        }
+        if (ImGui::Selectable(getStr(FunctionGeneratorType::Sine).c_str(), functionGeneratorType == FunctionGeneratorType::Sine)) {
+            functionGeneratorType = FunctionGeneratorType::Sine;
+        }
+        if (ImGui::Selectable(getStr(FunctionGeneratorType::WhiteNoise).c_str(), functionGeneratorType == FunctionGeneratorType::WhiteNoise)) {
+            functionGeneratorType = FunctionGeneratorType::WhiteNoise;
+        }
+        if (ImGui::Selectable(getStr(FunctionGeneratorType::PinkNoise).c_str(), functionGeneratorType == FunctionGeneratorType::PinkNoise)) {
+            functionGeneratorType = FunctionGeneratorType::PinkNoise;
+        }
+
+        ImGui::EndCombo();
+    }
+
+    if (functionGeneratorType == FunctionGeneratorType::Sine) {
+        auto freq = static_cast<float>(sineGenerator.getFrequency());
+        if (ImGui::SliderFloat("Frequency", &freq, 0.0F, 20000.0F, "%.0f", 1.0F)) {
+            sineGenerator.setFrequency(static_cast<double>(freq));
+        }
+    }
+
     ImGui::End();
 }
 
@@ -104,6 +149,9 @@ void AudioHandler::startAudio()
     }
 
     running = false;
+
+    wipReferenceSignal.reserve(config.samples);
+    wipInputSignal.reserve(config.samples);
 
     s2::Audio::Spec want = {};
     want.freq = config.sampleRate;
@@ -134,6 +182,7 @@ void AudioHandler::startAudio()
         return;
     }
     captureId = captureRes.extractValue();
+    s2::Audio::pauseDevice(captureId, false);
 
     running = true;
     status = "Running";
@@ -154,8 +203,21 @@ void AudioHandler::captureCallback(Uint8* stream, int len)
 {
     (void)stream;
     (void)len;
-    //auto count = static_cast<size_t>(len) / sizeof(float);
-    //auto* floatPtr = reinterpret_cast<float*>(stream);
+    auto count = static_cast<size_t>(len) / sizeof(float);
+    auto* floatPtr = reinterpret_cast<float*>(stream);
+
+    for (auto i = 0ull; i + 1 < count; i++) {
+        wipReferenceSignal.push_back(floatPtr[i + config.referenceChannel]);
+        wipInputSignal.push_back(floatPtr[i + config.inputChannel]);
+
+        if (wipReferenceSignal.size() >= config.samples) {
+            currentReferenceSignal = std::move(wipReferenceSignal);
+            currentInputSignal = std::move(wipInputSignal);
+            wipReferenceSignal.reserve(config.samples);
+            wipInputSignal.reserve(config.samples);
+            ++frameCount;
+        }
+    }
 }
 
 void AudioHandler::playbackCallbackStatic(void* userdata, Uint8* stream, int len)
@@ -166,4 +228,17 @@ void AudioHandler::playbackCallbackStatic(void* userdata, Uint8* stream, int len
 void AudioHandler::captureCallbackStatic(void* userdata, Uint8* stream, int len)
 {
     reinterpret_cast<AudioHandler*>(userdata)->captureCallback(stream, len);
+}
+
+size_t AudioHandler::getFrameCount() const noexcept
+{
+    return frameCount;
+}
+
+void AudioHandler::getFrame(std::vector<double> reference, std::vector<double> input) const noexcept
+{
+    s2::Audio::lockDevice(captureId);
+    reference = currentReferenceSignal;
+    input = currentInputSignal;
+    s2::Audio::unlockDevice(captureId);
 }

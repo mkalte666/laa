@@ -25,7 +25,8 @@
 struct AudioConfig {
     std::string captureName = "None";
     std::string playbackName = "None";
-    int referenceChannel = 0;
+    size_t referenceChannel = 0;
+    size_t inputChannel = 1;
     int sampleRate = 48000;
     Uint16 samples = 4096;
 };
@@ -36,6 +37,7 @@ enum class FunctionGeneratorType {
     PinkNoise,
     Sine
 };
+std::string getStr(const FunctionGeneratorType& gen) noexcept;
 
 class AudioHandler {
 public:
@@ -47,6 +49,9 @@ public:
     ~AudioHandler() noexcept;
 
     void update() noexcept;
+
+    size_t getFrameCount() const noexcept;
+    void getFrame(std::vector<double> reference, std::vector<double> input) const noexcept;
 
 private:
     float genNextPlaybackSample();
@@ -63,9 +68,15 @@ private:
     bool running = false;
     s2::Audio::DeviceID captureId = {};
     s2::Audio::DeviceID playbackId = {};
-    PinkNoiseGenerator pinkNoise;
-    SineGenerator sineGenerator;
-    FunctionGeneratorType functionGeneratorType = FunctionGeneratorType::Sine;
+    PinkNoiseGenerator pinkNoise = {};
+    SineGenerator sineGenerator = {};
+    FunctionGeneratorType functionGeneratorType = FunctionGeneratorType::Silence;
+
+    std::vector<double> currentReferenceSignal = {};
+    std::vector<double> currentInputSignal = {};
+    std::vector<double> wipReferenceSignal = {};
+    std::vector<double> wipInputSignal = {};
+    size_t frameCount = 0;
 };
 
 #endif //laa_audiohandler_h
