@@ -65,8 +65,10 @@ AudioHandler::~AudioHandler() noexcept
     }
 }
 
-void AudioHandler::update() noexcept
+void AudioHandler::update(ImVec2 windowSize) noexcept
 {
+    ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F));
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x / 6.0F, windowSize.y / 2.0F));
     ImGui::Begin("Audio Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     if (!running) {
@@ -83,33 +85,53 @@ void AudioHandler::update() noexcept
             }
             ImGui::EndCombo();
         }
-    }
 
-    if (ImGui::BeginCombo("Playback Device", config.playbackName.c_str())) {
-        for (int i = 0; i < s2::Audio::getNumDevices(false); i++) {
-            std::string playbackName = s2::Audio::getDeviceName(i, false);
-            ImGui::PushID(i);
-            if (ImGui::Selectable(playbackName.c_str(), playbackName == config.playbackName)) {
-                config.playbackName = playbackName;
+        if (ImGui::BeginCombo("Playback Device", config.playbackName.c_str())) {
+            for (int i = 0; i < s2::Audio::getNumDevices(false); i++) {
+                std::string playbackName = s2::Audio::getDeviceName(i, false);
+                ImGui::PushID(i);
+                if (ImGui::Selectable(playbackName.c_str(), playbackName == config.playbackName)) {
+                    config.playbackName = playbackName;
+                }
+                ImGui::PopID();
             }
-            ImGui::PopID();
+            ImGui::EndCombo();
         }
-        ImGui::EndCombo();
-    }
 
-    if (ImGui::BeginCombo("Capture Device", config.captureName.c_str())) {
-        for (int i = 0; i < s2::Audio::getNumDevices(true); i++) {
-            std::string captureName = s2::Audio::getDeviceName(i, true);
-            ImGui::PushID(i);
-            if (ImGui::Selectable(captureName.c_str(), captureName == config.captureName)) {
-                config.captureName = captureName;
+        if (ImGui::BeginCombo("Capture Device", config.captureName.c_str())) {
+            for (int i = 0; i < s2::Audio::getNumDevices(true); i++) {
+                std::string captureName = s2::Audio::getDeviceName(i, true);
+                ImGui::PushID(i);
+                if (ImGui::Selectable(captureName.c_str(), captureName == config.captureName)) {
+                    config.captureName = captureName;
+                }
+                ImGui::PopID();
             }
-            ImGui::PopID();
+            ImGui::EndCombo();
         }
-        ImGui::EndCombo();
+
+        if (ImGui::BeginCombo("Sample Rate", std::to_string(config.sampleRate).c_str())) {
+            if (ImGui::Selectable("44100", config.sampleRate == 44100)) {
+                config.sampleRate = 44100;
+            }
+            if (ImGui::Selectable("48000", config.sampleRate == 48000)) {
+                config.sampleRate = 48000;
+            }
+            if (ImGui::Selectable("96000", config.sampleRate == 96000)) {
+                config.sampleRate = 96000;
+            }
+            //if (ImGui::Selectable("192000", config.sampleRate == 192000)) {
+            //    config.sampleRate = 192000;
+            //}
+            ImGui::EndCombo();
+        }
+    } else {
+        ImGui::Text("Driver: %s", config.driver.c_str());
+        ImGui::Text("Playback: %s", config.playbackName.c_str());
+        ImGui::Text("Capture: %s", config.captureName.c_str());
+        ImGui::Text("Sample Rate: %zu", config.sampleRate);
     }
 
-    ImGui::InputInt("Sample Rate", &config.sampleRate);
     if (!running) {
         if (ImGui::Button("Start Audio")) {
             startAudio();
@@ -123,6 +145,7 @@ void AudioHandler::update() noexcept
     ImGui::Text("Status: %s", status.c_str());
 
     ImGui::Separator();
+
     if (ImGui::BeginCombo("Select Signal", getStr(functionGeneratorType).c_str())) {
         if (ImGui::Selectable(getStr(FunctionGeneratorType::Silence).c_str(), functionGeneratorType == FunctionGeneratorType::Silence)) {
             functionGeneratorType = FunctionGeneratorType::Silence;
@@ -145,6 +168,19 @@ void AudioHandler::update() noexcept
         if (ImGui::SliderFloat("Frequency", &freq, 0.0F, 20000.0F, "%.0f", 1.0F)) {
             sineGenerator.setFrequency(static_cast<double>(freq));
         }
+    }
+
+    ImGui::Separator();
+    if (ImGui::BeginCombo("Analysis Length", config.sampleCountToString(config.analysisSamples).c_str())) {
+        for (auto&& rate : config.getPossibleAnalysisSampleRates()) {
+            ImGui::PushID(static_cast<int>(rate));
+            if (ImGui::Selectable(config.sampleCountToString(rate).c_str(), rate == config.analysisSamples)) {
+                config.analysisSamples = rate;
+            }
+            ImGui::PopID();
+        }
+
+        ImGui::EndCombo();
     }
 
     ImGui::End();
@@ -181,10 +217,10 @@ void AudioHandler::startAudio()
 
     s2::Audio::Spec want;
     SDL_zero(want);
-    want.freq = config.sampleRate;
+    want.freq = static_cast<int>(config.sampleRate);
     want.format = AUDIO_F32;
     want.channels = 2;
-    want.samples = config.samples;
+    want.samples = static_cast<Uint16>(config.samples);
     want.userdata = this;
 
     auto wantPlayback = want;
@@ -268,4 +304,28 @@ void AudioHandler::getFrame(std::vector<double>& reference, std::vector<double>&
     reference = currentReferenceSignal;
     input = currentInputSignal;
     s2::Audio::unlockDevice(captureId);
+}
+std::vector<size_t> AudioConfig::getPossibleAnalysisSampleRates() const noexcept
+{
+    std::vector<size_t> rates;
+    for (size_t i = 1; i < static_cast<size_t>(sampleRate) * 4ul; i <<= 1) {
+        if (i >= sampleRate / 15) {
+            rates.push_back(i);
+        }
+    }
+
+    return rates;
+}
+
+double AudioConfig::samplesToSeconds(size_t count) const noexcept
+{
+    return static_cast<double>(count) / static_cast<double>(sampleRate);
+}
+
+std::string AudioConfig::sampleCountToString(size_t count) const noexcept
+{
+    std::string result;
+    double seconds = samplesToSeconds(count);
+    result = std::to_string(count) + " (" + std::to_string(seconds) + "s / " + std::to_string(1.0 / seconds) + "Hz)";
+    return result;
 }

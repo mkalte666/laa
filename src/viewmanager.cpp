@@ -17,9 +17,9 @@
 
 #include "viewmanager.h"
 
-void ViewManager::update() noexcept
+void ViewManager::update(ImVec2 windowSize) noexcept
 {
-    audioHandler.update();
-    stateManager.update(audioHandler);
-    fftView.update(stateManager);
+    audioHandler.update(windowSize);
+    stateManager.update(windowSize, audioHandler);
+    fftView.update(windowSize, stateManager);
 }

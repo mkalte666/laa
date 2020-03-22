@@ -24,7 +24,7 @@
 
 class FftView {
 public:
-    void update(StateManager& stateManager);
+    void update(ImVec2 windowSize, StateManager& stateManager);
 
 private:
 };

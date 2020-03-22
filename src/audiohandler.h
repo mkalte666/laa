@@ -28,8 +28,13 @@ struct AudioConfig {
     std::string playbackName = "None";
     size_t referenceChannel = 0;
     size_t inputChannel = 1;
-    int sampleRate = 48000;
-    Uint16 samples = 4096;
+    size_t sampleRate = 48000;
+    size_t samples = 4096;
+    size_t analysisSamples = 32768;
+
+    std::vector<size_t> getPossibleAnalysisSampleRates() const noexcept;
+    double samplesToSeconds(size_t count) const noexcept;
+    std::string sampleCountToString(size_t count) const noexcept;
 };
 
 enum class FunctionGeneratorType {
@@ -49,7 +54,7 @@ public:
     AudioHandler& operator=(AudioHandler&&) = default;
     ~AudioHandler() noexcept;
 
-    void update() noexcept;
+    void update(ImVec2 windowSize) noexcept;
 
     size_t getFrameCount() const noexcept;
     void getFrame(std::vector<double>& reference, std::vector<double>& input) const noexcept;

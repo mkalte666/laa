@@ -25,7 +25,7 @@
 
 class ViewManager {
 public:
-    void update() noexcept;
+    void update(ImVec2 windowSize) noexcept;
 
 private:
     AudioHandler audioHandler = {};

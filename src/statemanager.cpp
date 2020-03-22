@@ -27,7 +27,7 @@ ImColor randColor()
     return col;
 }
 
-void StateManager::update(AudioHandler& audioHandler)
+void StateManager::update(ImVec2 windowSize, AudioHandler& audioHandler)
 {
     if (audioHandler.getFrameCount() > lastFrame) {
         lastFrame = audioHandler.getFrameCount();
@@ -54,6 +54,8 @@ void StateManager::update(AudioHandler& audioHandler)
         liveState.h = ifft(liveState.H);
     }
 
+    ImGui::SetNextWindowPos(ImVec2(0.0F, windowSize.y / 2.0F));
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x / 6.0F, windowSize.y / 2.0F));
     ImGui::Begin("Snapshot Control");
     if (ImGui::Button("Capture")) {
         auto copy = liveState;

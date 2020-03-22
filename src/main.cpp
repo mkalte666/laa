@@ -74,8 +74,9 @@ int main(int, char**)
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window.get());
         ImGui::NewFrame();
-
-        manager.update();
+        int w, h;
+        s2::Video::GL::getDrawableSize(window, w, h);
+        manager.update(ImVec2(static_cast<float>(w), static_cast<float>(h)));
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

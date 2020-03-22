@@ -20,7 +20,7 @@
 
 #include "plot.h"
 
-void FftView::update(StateManager& stateManager)
+void FftView::update(ImVec2 windowSize, StateManager& stateManager)
 {
     const auto& liveState = stateManager.getLive();
     auto phaseInput = liveState.avgFftInput;
@@ -34,6 +34,7 @@ void FftView::update(StateManager& stateManager)
     magConfig.color = liveState.uniqueCol;
     PlotConfig phaseConfig = magConfig;
 
+    (void)windowSize;
     ImGui::Begin("FFT");
     BeginPlot(magConfig);
     if (liveState.visible) {
