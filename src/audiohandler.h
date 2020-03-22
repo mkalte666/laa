@@ -62,7 +62,7 @@ public:
     const AudioConfig& getConfig() const noexcept;
 
 private:
-    float genNextPlaybackSample();
+    double genNextPlaybackSample();
 
     void startAudio();
     void playbackCallback(Uint8* stream, int len);

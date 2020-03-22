@@ -186,17 +186,17 @@ void AudioHandler::update(ImVec2 windowSize) noexcept
     ImGui::End();
 }
 
-float AudioHandler::genNextPlaybackSample()
+double AudioHandler::genNextPlaybackSample()
 {
     switch (functionGeneratorType) {
     case FunctionGeneratorType::Silence:
         break;
     case FunctionGeneratorType::WhiteNoise:
-        return static_cast<float>(WhiteNoiseGenerator::nextSample());
+        return (WhiteNoiseGenerator::nextSample());
     case FunctionGeneratorType::PinkNoise:
-        return static_cast<float>(pinkNoise.nextSample());
+        return (pinkNoise.nextSample());
     case FunctionGeneratorType::Sine:
-        return static_cast<float>(sineGenerator.nextSample());
+        return (sineGenerator.nextSample());
         break;
     }
 
@@ -218,7 +218,7 @@ void AudioHandler::startAudio()
     s2::Audio::Spec want;
     SDL_zero(want);
     want.freq = static_cast<int>(config.sampleRate);
-    want.format = AUDIO_F32;
+    want.format = AUDIO_S32SYS;
     want.channels = 2;
     want.samples = static_cast<Uint16>(config.samples);
     want.userdata = this;
@@ -229,7 +229,7 @@ void AudioHandler::startAudio()
     wantCapture.callback = captureCallbackStatic;
 
     s2::Audio::Spec gotPlayback;
-    auto playbackRes = s2::Audio::openDevice(config.playbackName.c_str(), false, wantPlayback, gotPlayback, s2::AudioAllow::AnyChange);
+    auto playbackRes = s2::Audio::openDevice(config.playbackName.c_str(), false, wantPlayback, gotPlayback, static_cast<s2::AudioAllow>(0));
     if (!playbackRes) {
         status = playbackRes.getError().msg;
         return;
@@ -238,7 +238,7 @@ void AudioHandler::startAudio()
     s2::Audio::pauseDevice(playbackId, false);
 
     s2::Audio::Spec gotCapture;
-    auto captureRes = s2::Audio::openDevice(config.captureName.c_str(), true, wantCapture, gotCapture, s2::AudioAllow::AnyChange);
+    auto captureRes = s2::Audio::openDevice(config.captureName.c_str(), true, wantCapture, gotCapture, static_cast<s2::AudioAllow>(0));
     if (!captureRes) {
         status = captureRes.getError().msg;
         s2::Audio::closeDevice(playbackId);
@@ -253,25 +253,28 @@ void AudioHandler::startAudio()
 
 void AudioHandler::playbackCallback(Uint8* stream, int len)
 {
-    auto count = static_cast<size_t>(len) / sizeof(float);
-    auto* floatPtr = reinterpret_cast<float*>(stream);
+    auto count = static_cast<size_t>(len) / sizeof(Sint32);
+    auto* ptr = reinterpret_cast<Sint32*>(stream);
     for (auto i = 0ull; i + 1 < count; i += 2) {
-        float f = genNextPlaybackSample();
-        floatPtr[i] = f;
-        floatPtr[i + 1] = f;
+        double f = genNextPlaybackSample() * SDL_MAX_SINT32;
+
+        ptr[i] = static_cast<Sint32>(f);
+        ptr[i+1] = static_cast<Sint32>(f);
     }
 }
 
 void AudioHandler::captureCallback(Uint8* stream, int len)
 {
-    (void)stream;
-    (void)len;
-    auto count = static_cast<size_t>(len) / sizeof(float);
-    auto* floatPtr = reinterpret_cast<float*>(stream);
+    auto count = static_cast<size_t>(len) / sizeof(Sint32);
+    auto* ptr = reinterpret_cast<Sint32*>(stream);
 
     for (auto i = 0ull; i + 1 < count; i += 2) {
-        wipReferenceSignal.push_back(floatPtr[i + config.referenceChannel]);
-        wipInputSignal.push_back(floatPtr[i + config.inputChannel]);
+        auto reference = ptr[i + config.referenceChannel];
+        auto input = ptr[i + config.inputChannel];
+        auto dReference = static_cast<double>(reference)/static_cast<double>(SDL_MAX_SINT32);
+        auto dInput= static_cast<double>(input)/static_cast<double>(SDL_MAX_SINT32);
+        wipReferenceSignal.push_back(dReference);
+        wipInputSignal.push_back(dInput);
 
         if (wipReferenceSignal.size() >= config.analysisSamples) {
             currentReferenceSignal = std::move(wipReferenceSignal);
