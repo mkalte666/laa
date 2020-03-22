@@ -25,6 +25,61 @@ using RealVec = std::vector<Real>;
 using Complex = std::complex<double>;
 using ComplexVec = std::vector<Complex>;
 
+#define EPSILON 0.000001
+inline double phase(const Complex& c)
+{
+    double preAtan = 0.0;
+    if (std::abs(c) < 0.01) {
+        return 0.0;
+    }
+    if (std::abs(c.real()) < EPSILON) {
+        preAtan = c.imag() > 0.0 ? M_PI / 2.0 : -M_PI / 2.0;
+    } else {
+        preAtan = c.imag() / c.real();
+    }
+
+    auto p = std::atan(preAtan);
+
+    if (c.real() < 0) {
+        if (c.imag() < 0) {
+            p -= M_PI;
+        } else {
+            p += M_PI;
+        }
+    }
+
+    return p;
+}
+
+inline void toPolar(ComplexVec& x)
+{
+    for (auto& e : x) {
+        auto mag = std::abs(e);
+        auto p = phase(e);
+        e.real(mag);
+        e.imag(p);
+    }
+}
+
+inline void unwrap(ComplexVec& x)
+{
+    for (size_t i = 1ul; i < x.size(); i++) {
+        auto c = std::floor((x[i - 1].imag() - x[i].imag()) / (2.0 * M_PI));
+        x[i].imag(x[i].imag() + c * 2.0 * M_PI);
+    }
+}
+
+inline void toUnwrappedPolar(ComplexVec& x)
+{
+    toPolar(x);
+    unwrap(x);
+}
+
+inline double angle(const Complex& a, const Complex& b)
+{
+    return phase(a) - phase(b);
+}
+
 template <class T>
 inline void realToComplex(std::vector<std::complex<T>>& dst, const std::vector<T>& src)
 {

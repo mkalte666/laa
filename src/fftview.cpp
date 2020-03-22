@@ -18,17 +18,61 @@
 #include "fftview.h"
 #include "dsp/hamming.h"
 
+#include "plot.h"
 
 void FftView::update(StateManager& stateManager)
 {
     const auto& liveState = stateManager.getLive();
-    std::vector<float> fMag;
-    fMag.resize(liveState.avgFftInput.size());
-    for (size_t i = 0ul; i < fMag.size(); i++) {
-        fMag[i] = static_cast<float>(std::abs(liveState.avgFftInput[i]));
-    }
+    auto phaseInput = liveState.avgFftInput;
+    toPolar(phaseInput);
 
+    PlotConfig magConfig;
+    magConfig.min = 0.0;
+    magConfig.max = 10.0;
+    magConfig.count = phaseInput.size() / 2;
+    magConfig.size = ImVec2(400.0F, 200.0F);
+    magConfig.color = liveState.uniqueCol;
+    PlotConfig phaseConfig = magConfig;
 
     ImGui::Begin("FFT");
+    BeginPlot(magConfig);
+    if (liveState.visible) {
+        Plot([&phaseInput](size_t idx) {
+            return phaseInput[idx].real();
+        });
+    }
+
+    for (auto& state : stateManager.getSaved()) {
+        if (!state.visible) {
+            continue;
+        }
+        auto values = state.avgFftInput;
+        toPolar(values);
+        Plot([&values](size_t idx) {
+            return values[idx].real();
+        },
+            &state.uniqueCol);
+    }
+    EndPlot();
+
+    BeginPlot(phaseConfig);
+    if (liveState.visible) {
+        Plot([&phaseInput](size_t idx) {
+            return phaseInput[idx].imag();
+        });
+    }
+
+    for (auto& state : stateManager.getSaved()) {
+        if (!state.visible) {
+            continue;
+        }
+        auto values = state.avgFftInput;
+        toPolar(values);
+        Plot([&values](size_t idx) {
+            return values[idx].imag();
+        },
+            &state.uniqueCol);
+    }
+    EndPlot();
     ImGui::End();
 }

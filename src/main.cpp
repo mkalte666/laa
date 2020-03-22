@@ -17,9 +17,12 @@
 
 #include "shared.h"
 #include "viewmanager.h"
+#include <ctime>
+#include <random>
 
 int main(int, char**)
 {
+    srand(static_cast<unsigned int>(time(nullptr)));
     auto res = s2::SDL2::init(s2::InitFlags::Audio | s2::InitFlags::Video);
     if (!res) {
         return -1;

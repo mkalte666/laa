@@ -16,6 +16,16 @@
  */
 
 #include "statemanager.h"
+#include <random>
+
+ImColor randColor()
+{
+    float h = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 360.0F;
+    float s = 90.0F + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 10.0F;
+    float v = 50.0F + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 10.0F;
+    auto col = ImColor::HSV(h, s, v);
+    return col;
+}
 
 void StateManager::update(AudioHandler& audioHandler)
 {
@@ -43,9 +53,55 @@ void StateManager::update(AudioHandler& audioHandler)
 
         liveState.h = ifft(liveState.H);
     }
+
+    ImGui::Begin("Snapshot Control");
+    if (ImGui::Button("Capture")) {
+        auto copy = liveState;
+        copy.uniqueCol = randColor();
+        saved.push_back(copy);
+    }
+
+    ImGui::ColorButton("Live Data", liveState.uniqueCol);
+    ImGui::SameLine();
+    ImGui::Checkbox("Show##liveData", &liveState.visible);
+
+    auto iter = saved.begin();
+    int c = 0;
+    while (iter != saved.end()) {
+        c++;
+        ImGui::PushID(c);
+        ImGui::ColorButton(iter->name.c_str(), iter->uniqueCol);
+        ImGui::SameLine();
+        ImGui::InputText("##nameInput", &iter->name);
+        ImGui::SameLine();
+        ImGui::Checkbox("Show##liveData", &iter->visible);
+        ImGui::SameLine();
+        if (ImGui::Button("x")) {
+            iter = saved.erase(iter);
+            if (iter == saved.end()) {
+                ImGui::PopID();
+                break;
+            }
+        }
+        ImGui::PopID();
+        iter++;
+    }
+
+    ImGui::End();
 }
 
 const State& StateManager::getLive() const noexcept
 {
     return liveState;
+}
+
+const std::list<State>& StateManager::getSaved() const noexcept
+{
+    return saved;
+}
+
+StateManager::StateManager() noexcept
+{
+    liveState.uniqueCol = randColor();
+    liveState.name = "Live";
 }

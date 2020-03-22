@@ -15,25 +15,30 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef laa_avg_h
-#define laa_avg_h
+#ifndef laa_plot_h
+#define laa_plot_h
 
-#include <vector>
+#include "shared.h"
+#include <functional>
 
-template <class T>
-inline void mean(std::vector<T>& dst, const std::vector<T>& in)
-{
-    for (size_t i = 0ull; i < in.size(); i++) {
-        dst[i] = (in[i] + dst[i]) / 2.0;
-    }
-}
+using PlotCallback = std::function<double(size_t index)>;
 
-template <class T>
-inline void weighted(std::vector<T>& dst, const std::vector<T>& in, double weight)
-{
-    for (size_t i = 0ull; i < in.size(); i++) {
-        dst[i] = in[i] * weight + dst[i] * (1.0 - weight);
-    }
-}
+struct PlotConfig {
+    double min = 0.0;
+    double max = 1.0;
+    double center = 0.5;
 
-#endif //laa_avg_h
+    ImVec2 size = ImVec2(0.0F, 0.0F);
+    ImColor color = 0xFFFFFFFFu;
+
+    std::string label = "Plot";
+    std::string xLabel = "x";
+    std::string yLabel = "y";
+
+    size_t count;
+};
+
+void BeginPlot(const PlotConfig& config) noexcept;
+void Plot(PlotCallback callback, ImColor const* col = nullptr) noexcept;
+void EndPlot() noexcept;
+#endif //laa_plot_h

@@ -23,7 +23,13 @@
 #include "dsp/fft.h"
 #include "dsp/hamming.h"
 
+#include <list>
+
 struct State {
+    ImColor uniqueCol = {};
+    bool visible = true;
+    std::string name = "Capture";
+
     RealVec reference = {};
     RealVec input = {};
     ComplexVec fftReference = {};
@@ -35,15 +41,23 @@ struct State {
     ComplexVec h = {};
 };
 
+ImColor randColor();
+
 class StateManager {
 public:
+    StateManager() noexcept;
+    ~StateManager() noexcept = default;
     void update(AudioHandler& audioHandler);
 
     const State& getLive() const noexcept;
 
+    const std::list<State>& getSaved() const noexcept;
+
 private:
     size_t lastFrame = 0;
     State liveState = {};
+
+    std::list<State> saved;
 };
 
 #endif //laa_statemanager_h
