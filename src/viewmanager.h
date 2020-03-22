@@ -21,6 +21,7 @@
 #include "audiohandler.h"
 #include "fftview.h"
 #include "shared.h"
+#include "signalview.h"
 #include "statemanager.h"
 
 class ViewManager {
@@ -30,7 +31,8 @@ public:
 private:
     AudioHandler audioHandler = {};
     StateManager stateManager = {};
-    FftView fftView = {};
+    SignalView signalView = {};
+    //FftView fftView = {};
 };
 
 #endif //laa_viewmanager_h

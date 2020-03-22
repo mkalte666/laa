@@ -23,9 +23,9 @@
 #include <stack>
 static std::stack<PlotConfig> gConfigStack;
 
-double makeY(double min, double max, double height, double value)
+double makeY(const PlotConfig& config, double height, double value)
 {
-    return (((max - min) - (value - min)) / (max - min)) * height;
+    return (((config.max - config.min) - (value - config.min)) / (config.max - config.min)) * height;
 }
 
 void BeginPlot(const PlotConfig& config) noexcept
@@ -43,6 +43,30 @@ void BeginPlot(const PlotConfig& config) noexcept
     const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + frame_size);
 
     ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
+    // y grid
+    if (config.yGridInterval != 0.0) {
+        for (size_t i = 0; static_cast<double>(i) * config.yGridInterval < config.max || static_cast<double>(i) * config.yGridInterval * -1.0 > config.min; ++i) {
+            double yUp = static_cast<double>(i) * config.yGridInterval;
+            double yDown = static_cast<double>(i) * config.yGridInterval * -1.0;
+            if (yUp < config.max) {
+                auto y = static_cast<float>(makeY(config, frame_bb.GetHeight(), yUp));
+                ImVec2 p0(0.0, y);
+                p0 += frame_bb.Min;
+                ImVec2 p1(frame_bb.GetWidth(), y);
+                p1 += frame_bb.Min;
+                ImGui::GetWindowDrawList()->AddLine(p0, p1, 0xFFFFFFFF);
+            }
+
+            if (yDown > config.min) {
+                auto y = static_cast<float>(makeY(config, frame_bb.GetHeight(), yDown));
+                ImVec2 p0(0.0, y);
+                p0 += frame_bb.Min;
+                ImVec2 p1(frame_bb.GetWidth(), y);
+                p1 += frame_bb.Min;
+                ImGui::GetWindowDrawList()->AddLine(p0, p1, 0xFFFFFFFF);
+            }
+        }
+    }
 }
 
 void Plot(PlotCallback callback, ImColor const* col) noexcept
@@ -79,14 +103,14 @@ void Plot(PlotCallback callback, ImColor const* col) noexcept
     double v0 = callback(0);
 
     double lastx = 0;
-    double lastY = static_cast<int>(makeY(config.min, config.max, static_cast<double>(frame_bb.GetHeight()), v0));
+    double lastY = static_cast<int>(makeY(config, static_cast<double>(frame_bb.GetHeight()), v0));
 
     for (int x = 1; x < static_cast<int>(inner_bb.GetWidth()); x++) {
         size_t t = static_cast<size_t>(std::floor(static_cast<double>(x) * step));
         double v = callback(t);
 
         double newX = static_cast<double>(x);
-        auto newY = makeY(config.min, config.max, static_cast<double>(frame_bb.GetHeight()), v);
+        auto newY = makeY(config, static_cast<double>(frame_bb.GetHeight()), v);
 
         ImVec2 pos1 = inner_bb.Min + ImVec2(static_cast<float>(newX), static_cast<float>(newY));
         ImVec2 pos0 = inner_bb.Min + ImVec2(static_cast<float>(lastx), static_cast<float>(lastY));

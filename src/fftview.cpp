@@ -61,7 +61,7 @@ void FftView::update(ImVec2 windowSize, StateManager& stateManager)
 
     phaseConfig.min = -M_PI * 1.05;
     phaseConfig.max = M_PI * 1.05;
-
+    phaseConfig.yGridInterval = M_PI / 4.0;
     BeginPlot(phaseConfig);
     if (liveState.visible) {
         Plot([&phaseInput](size_t idx) {

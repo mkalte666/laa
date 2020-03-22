@@ -21,5 +21,6 @@ void ViewManager::update(ImVec2 windowSize) noexcept
 {
     audioHandler.update(windowSize);
     stateManager.update(windowSize, audioHandler);
-    fftView.update(windowSize, stateManager);
+    //fftView.update(windowSize, stateManager);
+    signalView.update(windowSize, stateManager);
 }

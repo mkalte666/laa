@@ -56,7 +56,7 @@ add_executable(laatool
         src/statemanager.h
         src/dsp/avg.h
         src/plot.cpp
-        src/plot.h)
+        src/plot.h src/signalview.cpp src/signalview.h)
 
 target_link_libraries(laatool PRIVATE imgui gl3w sdl2wrap::sdl2 OpenGL::GL)
 
