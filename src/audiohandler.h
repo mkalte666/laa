@@ -59,6 +59,8 @@ public:
     size_t getFrameCount() const noexcept;
     void getFrame(std::vector<double>& reference, std::vector<double>& input) const noexcept;
 
+    const AudioConfig& getConfig() const noexcept;
+
 private:
     float genNextPlaybackSample();
 
@@ -68,7 +70,6 @@ private:
     static void playbackCallbackStatic(void* userdata, Uint8* stream, int len);
     static void captureCallbackStatic(void* userdata, Uint8* stream, int len);
 
-private:
     AudioConfig config = {};
     bool driverChosen = false;
     std::string status = "Not Started";

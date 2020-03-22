@@ -26,6 +26,7 @@
 #include <list>
 
 struct State {
+    AudioConfig config = {};
     ImColor uniqueCol = {};
     bool visible = true;
     std::string name = "Capture";

@@ -31,6 +31,8 @@ void StateManager::update(ImVec2 windowSize, AudioHandler& audioHandler)
 {
     if (audioHandler.getFrameCount() > lastFrame) {
         lastFrame = audioHandler.getFrameCount();
+        liveState.config = audioHandler.getConfig();
+
         audioHandler.getFrame(liveState.reference, liveState.input);
         hamming(liveState.reference);
         hamming(liveState.input);

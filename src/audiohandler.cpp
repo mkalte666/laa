@@ -212,8 +212,8 @@ void AudioHandler::startAudio()
 
     running = false;
 
-    wipReferenceSignal.reserve(config.samples);
-    wipInputSignal.reserve(config.samples);
+    wipReferenceSignal.reserve(config.analysisSamples);
+    wipInputSignal.reserve(config.analysisSamples);
 
     s2::Audio::Spec want;
     SDL_zero(want);
@@ -273,11 +273,11 @@ void AudioHandler::captureCallback(Uint8* stream, int len)
         wipReferenceSignal.push_back(floatPtr[i + config.referenceChannel]);
         wipInputSignal.push_back(floatPtr[i + config.inputChannel]);
 
-        if (wipReferenceSignal.size() >= config.samples) {
+        if (wipReferenceSignal.size() >= config.analysisSamples) {
             currentReferenceSignal = std::move(wipReferenceSignal);
             currentInputSignal = std::move(wipInputSignal);
-            wipReferenceSignal.reserve(config.samples);
-            wipInputSignal.reserve(config.samples);
+            wipReferenceSignal.reserve(config.analysisSamples);
+            wipInputSignal.reserve(config.analysisSamples);
             ++frameCount;
         }
     }
@@ -305,6 +305,12 @@ void AudioHandler::getFrame(std::vector<double>& reference, std::vector<double>&
     input = currentInputSignal;
     s2::Audio::unlockDevice(captureId);
 }
+
+const AudioConfig& AudioHandler::getConfig() const noexcept
+{
+    return config;
+}
+
 std::vector<size_t> AudioConfig::getPossibleAnalysisSampleRates() const noexcept
 {
     std::vector<size_t> rates;
