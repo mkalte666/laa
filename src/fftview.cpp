@@ -22,6 +22,10 @@
 
 void FftView::update(ImVec2 windowSize, StateManager& stateManager)
 {
+    ImGui::SetNextWindowPos(ImVec2(windowSize.x / 6.0F, 0.0F));
+    auto size = ImVec2(windowSize.x * 5.0F / 6.0F, windowSize.y);
+    ImGui::SetNextWindowSize(size);
+
     const auto& liveState = stateManager.getLive();
     auto phaseInput = liveState.avgFftInput;
     toPolar(phaseInput);
@@ -30,11 +34,10 @@ void FftView::update(ImVec2 windowSize, StateManager& stateManager)
     magConfig.min = 0.0;
     magConfig.max = 10.0;
     magConfig.count = phaseInput.size() / 2;
-    magConfig.size = ImVec2(400.0F, 200.0F);
+    magConfig.size = ImVec2(size.x * 0.98F, size.y * 0.4F);
     magConfig.color = liveState.uniqueCol;
     PlotConfig phaseConfig = magConfig;
 
-    (void)windowSize;
     ImGui::Begin("FFT");
     BeginPlot(magConfig);
     if (liveState.visible) {
@@ -55,6 +58,9 @@ void FftView::update(ImVec2 windowSize, StateManager& stateManager)
             &state.uniqueCol);
     }
     EndPlot();
+
+    phaseConfig.min = -M_PI * 1.05;
+    phaseConfig.max = M_PI * 1.05;
 
     BeginPlot(phaseConfig);
     if (liveState.visible) {
