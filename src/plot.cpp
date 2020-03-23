@@ -20,8 +20,21 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
 
+#include <sstream>
 #include <stack>
+
+template <class T>
+std::string toStringPrecision(T value, long precision)
+{
+    std::stringstream ss;
+    ss.precision(precision);
+    ss << value;
+    return ss.str();
+}
+
 static std::stack<PlotConfig> gConfigStack;
+
+const ImColor gridColor = ImColor(0.5F, 0.5F, 0.6F, 1.0F);
 
 double makeY(const PlotConfig& config, double height, double value)
 {
@@ -43,6 +56,7 @@ void BeginPlot(const PlotConfig& config) noexcept
     const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + frame_size);
 
     ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
+
     // y grid
     if (config.yGridInterval != 0.0) {
         for (size_t i = 0; static_cast<double>(i) * config.yGridInterval < config.max || static_cast<double>(i) * config.yGridInterval * -1.0 > config.min; ++i) {
@@ -54,16 +68,20 @@ void BeginPlot(const PlotConfig& config) noexcept
                 p0 += frame_bb.Min;
                 ImVec2 p1(frame_bb.GetWidth(), y);
                 p1 += frame_bb.Min;
-                ImGui::GetWindowDrawList()->AddLine(p0, p1, 0xFFFFFFFF);
+                ImGui::GetWindowDrawList()->AddLine(p0, p1, gridColor);
+                auto labelStr = toStringPrecision(yUp, 2);
+                ImGui::GetWindowDrawList()->AddText(p0, gridColor, labelStr.c_str());
             }
 
-            if (yDown > config.min) {
+            if (yDown > config.min && yDown != 0.0F) {
                 auto y = static_cast<float>(makeY(config, frame_bb.GetHeight(), yDown));
                 ImVec2 p0(0.0, y);
                 p0 += frame_bb.Min;
                 ImVec2 p1(frame_bb.GetWidth(), y);
                 p1 += frame_bb.Min;
-                ImGui::GetWindowDrawList()->AddLine(p0, p1, 0xFFFFFFFF);
+                ImGui::GetWindowDrawList()->AddLine(p0, p1, gridColor);
+                auto labelStr = toStringPrecision(yDown, 2);
+                ImGui::GetWindowDrawList()->AddText(p0, gridColor, labelStr.c_str());
             }
         }
     }
