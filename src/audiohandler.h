@@ -54,7 +54,7 @@ public:
     AudioHandler& operator=(AudioHandler&&) = default;
     ~AudioHandler() noexcept;
 
-    void update(ImVec2 windowSize) noexcept;
+    void update() noexcept;
 
     size_t getFrameCount() const noexcept;
     void getFrame(std::vector<double>& reference, std::vector<double>& input) const noexcept;

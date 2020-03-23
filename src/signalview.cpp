@@ -18,15 +18,14 @@
 #include "signalview.h"
 #include "plot.h"
 
-void SignalView::update(ImVec2 windowSize, StateManager& stateManager) noexcept
+void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
 {
-    ImGui::SetNextWindowPos(ImVec2(windowSize.x / 6.0F, 0.0F));
-    auto size = ImVec2(windowSize.x * 5.0F / 6.0F, windowSize.y);
-    ImGui::SetNextWindowSize(size);
+    ImGui::Begin((idHint + "Signal").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
     const auto& data = liveState.input;
 
+    auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
     plotConfig.size = size;
     plotConfig.count = data.size();
@@ -34,7 +33,6 @@ void SignalView::update(ImVec2 windowSize, StateManager& stateManager) noexcept
     plotConfig.max = 1.0;
     plotConfig.label = "Signal";
 
-    ImGui::Begin("Signal");
     BeginPlot(plotConfig);
     Plot([&data](size_t idx) {
         return data[idx];

@@ -65,14 +65,13 @@ AudioHandler::~AudioHandler() noexcept
     }
 }
 
-void AudioHandler::update(ImVec2 windowSize) noexcept
+void AudioHandler::update() noexcept
 {
-    ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F));
-    ImGui::SetNextWindowSize(ImVec2(windowSize.x / 6.0F, windowSize.y / 2.0F));
-    ImGui::Begin("Audio Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-
+    ImGui::Begin("Audio Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    ImGui::PushItemWidth(-1.0F);
     if (!running) {
-        if (ImGui::BeginCombo("Driver", config.driver.c_str())) {
+        ImGui::Text("Driver");
+        if (ImGui::BeginCombo("##Driver", config.driver.c_str())) {
             for (int i = 0; i < s2::Audio::getNumDrivers(); i++) {
                 ImGui::PushID(i);
                 if (ImGui::Selectable(s2::Audio::getDriver(i))) {
@@ -86,7 +85,8 @@ void AudioHandler::update(ImVec2 windowSize) noexcept
             ImGui::EndCombo();
         }
 
-        if (ImGui::BeginCombo("Playback Device", config.playbackName.c_str())) {
+        ImGui::Text("Playback Device");
+        if (ImGui::BeginCombo("##Playback Device", config.playbackName.c_str())) {
             for (int i = 0; i < s2::Audio::getNumDevices(false); i++) {
                 std::string playbackName = s2::Audio::getDeviceName(i, false);
                 ImGui::PushID(i);
@@ -98,7 +98,8 @@ void AudioHandler::update(ImVec2 windowSize) noexcept
             ImGui::EndCombo();
         }
 
-        if (ImGui::BeginCombo("Capture Device", config.captureName.c_str())) {
+        ImGui::Text("Capture Device");
+        if (ImGui::BeginCombo("##Capture Device", config.captureName.c_str())) {
             for (int i = 0; i < s2::Audio::getNumDevices(true); i++) {
                 std::string captureName = s2::Audio::getDeviceName(i, true);
                 ImGui::PushID(i);
@@ -110,7 +111,8 @@ void AudioHandler::update(ImVec2 windowSize) noexcept
             ImGui::EndCombo();
         }
 
-        if (ImGui::BeginCombo("Sample Rate", std::to_string(config.sampleRate).c_str())) {
+        ImGui::Text("Sample Rate");
+        if (ImGui::BeginCombo("##Sample Rate", std::to_string(config.sampleRate).c_str())) {
             if (ImGui::Selectable("44100", config.sampleRate == 44100)) {
                 config.sampleRate = 44100;
             }
@@ -146,7 +148,8 @@ void AudioHandler::update(ImVec2 windowSize) noexcept
 
     ImGui::Separator();
 
-    if (ImGui::BeginCombo("Select Signal", getStr(functionGeneratorType).c_str())) {
+    ImGui::Text("Select Signal");
+    if (ImGui::BeginCombo("##Select Signal", getStr(functionGeneratorType).c_str())) {
         if (ImGui::Selectable(getStr(FunctionGeneratorType::Silence).c_str(), functionGeneratorType == FunctionGeneratorType::Silence)) {
             functionGeneratorType = FunctionGeneratorType::Silence;
         }
@@ -165,13 +168,15 @@ void AudioHandler::update(ImVec2 windowSize) noexcept
 
     if (functionGeneratorType == FunctionGeneratorType::Sine) {
         auto freq = static_cast<float>(sineGenerator.getFrequency());
-        if (ImGui::SliderFloat("Frequency", &freq, 0.0F, 20000.0F, "%.0f", 1.0F)) {
+        ImGui::Text("Frequency");
+        if (ImGui::SliderFloat("##Frequency", &freq, 0.0F, 20000.0F, "%.0f", 1.0F)) {
             sineGenerator.setFrequency(static_cast<double>(freq));
         }
     }
 
     ImGui::Separator();
-    if (ImGui::BeginCombo("Analysis Length", config.sampleCountToString(config.analysisSamples).c_str())) {
+    ImGui::Text("Analysis Length");
+    if (ImGui::BeginCombo("##Analysis Length", config.sampleCountToString(config.analysisSamples).c_str())) {
         for (auto&& rate : config.getPossibleAnalysisSampleRates()) {
             ImGui::PushID(static_cast<int>(rate));
             if (ImGui::Selectable(config.sampleCountToString(rate).c_str(), rate == config.analysisSamples)) {
@@ -183,6 +188,7 @@ void AudioHandler::update(ImVec2 windowSize) noexcept
         ImGui::EndCombo();
     }
 
+    ImGui::PopItemWidth();
     ImGui::End();
 }
 
@@ -259,7 +265,7 @@ void AudioHandler::playbackCallback(Uint8* stream, int len)
         double f = genNextPlaybackSample() * SDL_MAX_SINT32;
 
         ptr[i] = static_cast<Sint32>(f);
-        ptr[i+1] = static_cast<Sint32>(f);
+        ptr[i + 1] = static_cast<Sint32>(f);
     }
 }
 
@@ -271,8 +277,8 @@ void AudioHandler::captureCallback(Uint8* stream, int len)
     for (auto i = 0ull; i + 1 < count; i += 2) {
         auto reference = ptr[i + config.referenceChannel];
         auto input = ptr[i + config.inputChannel];
-        auto dReference = static_cast<double>(reference)/static_cast<double>(SDL_MAX_SINT32);
-        auto dInput= static_cast<double>(input)/static_cast<double>(SDL_MAX_SINT32);
+        auto dReference = static_cast<double>(reference) / static_cast<double>(SDL_MAX_SINT32);
+        auto dInput = static_cast<double>(input) / static_cast<double>(SDL_MAX_SINT32);
         wipReferenceSignal.push_back(dReference);
         wipInputSignal.push_back(dInput);
 

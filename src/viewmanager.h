@@ -29,6 +29,8 @@ public:
     void update(ImVec2 windowSize) noexcept;
 
 private:
+    void drawSelectorAndContent(ImVec2 windowSize, float offset) noexcept;
+
     AudioHandler audioHandler = {};
     StateManager stateManager = {};
     SignalView signalView = {};

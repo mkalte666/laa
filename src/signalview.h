@@ -23,7 +23,7 @@
 
 class SignalView {
 public:
-    void update(ImVec2 windowSize, StateManager& stateManager) noexcept;
+    void update(StateManager& stateManager, std::string idHint) noexcept;
 };
 
 #endif //laa_signalview_h

@@ -20,12 +20,8 @@
 
 #include "plot.h"
 
-void FftView::update(ImVec2 windowSize, StateManager& stateManager)
+void FftView::update(StateManager& stateManager)
 {
-    ImGui::SetNextWindowPos(ImVec2(windowSize.x / 6.0F, 0.0F));
-    auto size = ImVec2(windowSize.x * 5.0F / 6.0F, windowSize.y);
-    ImGui::SetNextWindowSize(size);
-
     const auto& liveState = stateManager.getLive();
     auto phaseInput = liveState.avgFftInput;
     toPolar(phaseInput);
@@ -34,11 +30,11 @@ void FftView::update(ImVec2 windowSize, StateManager& stateManager)
     magConfig.min = 0.0;
     magConfig.max = 10.0;
     magConfig.count = phaseInput.size() / 2;
-    magConfig.size = ImVec2(size.x * 0.98F, size.y * 0.4F);
+    //magConfig.size = ImVec2(size.x * 0.98F, size.y * 0.4F);
     magConfig.color = liveState.uniqueCol;
     PlotConfig phaseConfig = magConfig;
 
-    ImGui::Begin("FFT");
+    ImGui::Begin("FFT", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
     BeginPlot(magConfig);
     if (liveState.visible) {
         Plot([&phaseInput](size_t idx) {

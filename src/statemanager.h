@@ -48,7 +48,7 @@ class StateManager {
 public:
     StateManager() noexcept;
     ~StateManager() noexcept = default;
-    void update(ImVec2 windowSize, AudioHandler& audioHandler);
+    void update(AudioHandler& audioHandler);
 
     const State& getLive() const noexcept;
 

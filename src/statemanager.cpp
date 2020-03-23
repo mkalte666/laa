@@ -27,7 +27,7 @@ ImColor randColor()
     return col;
 }
 
-void StateManager::update(ImVec2 windowSize, AudioHandler& audioHandler)
+void StateManager::update(AudioHandler& audioHandler)
 {
     if (audioHandler.getFrameCount() > lastFrame) {
         lastFrame = audioHandler.getFrameCount();
@@ -56,9 +56,8 @@ void StateManager::update(ImVec2 windowSize, AudioHandler& audioHandler)
         liveState.h = ifft(liveState.H);
     }
 
-    ImGui::SetNextWindowPos(ImVec2(0.0F, windowSize.y / 2.0F));
-    ImGui::SetNextWindowSize(ImVec2(windowSize.x / 6.0F, windowSize.y / 2.0F));
-    ImGui::Begin("Snapshot Control");
+    ImGui::Begin("Snapshot Control", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    ImGui::PushItemWidth(-1.0F);
     if (ImGui::Button("Capture")) {
         auto copy = liveState;
         copy.uniqueCol = randColor();
@@ -67,7 +66,7 @@ void StateManager::update(ImVec2 windowSize, AudioHandler& audioHandler)
 
     ImGui::ColorButton("Live Data", liveState.uniqueCol);
     ImGui::SameLine();
-    ImGui::Checkbox("Show##liveData", &liveState.visible);
+    ImGui::Checkbox("Live Data##liveData", &liveState.visible);
 
     auto iter = saved.begin();
     int c = 0;
@@ -76,9 +75,7 @@ void StateManager::update(ImVec2 windowSize, AudioHandler& audioHandler)
         ImGui::PushID(c);
         ImGui::ColorButton(iter->name.c_str(), iter->uniqueCol);
         ImGui::SameLine();
-        ImGui::InputText("##nameInput", &iter->name);
-        ImGui::SameLine();
-        ImGui::Checkbox("Show##liveData", &iter->visible);
+        ImGui::Checkbox("##ShowliveData", &iter->visible);
         ImGui::SameLine();
         if (ImGui::Button("x")) {
             iter = saved.erase(iter);
@@ -87,10 +84,13 @@ void StateManager::update(ImVec2 windowSize, AudioHandler& audioHandler)
                 break;
             }
         }
+        ImGui::SameLine();
+        ImGui::InputText("##nameInput", &iter->name);
         ImGui::PopID();
         iter++;
     }
 
+    ImGui::PopItemWidth();
     ImGui::End();
 }
 
