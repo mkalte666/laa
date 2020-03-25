@@ -20,25 +20,40 @@
 
 #include "plot.h"
 
-void FftView::update(StateManager& stateManager)
+void FftView::update(StateManager& stateManager, std::string idHint)
 {
+    ImGui::Begin((idHint + "Mag").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+
     const auto& liveState = stateManager.getLive();
-    auto phaseInput = liveState.avgFftInput;
-    toPolar(phaseInput);
+    auto data = liveState.fftInput;
+    toPolar(data);
 
-    PlotConfig magConfig;
-    magConfig.min = 0.0;
-    magConfig.max = 10.0;
-    magConfig.count = phaseInput.size() / 2;
-    //magConfig.size = ImVec2(size.x * 0.98F, size.y * 0.4F);
-    magConfig.color = liveState.uniqueCol;
-    PlotConfig phaseConfig = magConfig;
+    auto size = ImGui::GetWindowContentRegionMax();
+    PlotConfig plotConfig;
+    plotConfig.color = liveState.uniqueCol;
+    plotConfig.size = ImVec2(size.x*0.9F, size.y*0.9F);
+    plotConfig.count = data.size()/2;
+    plotConfig.min = 0.00001;
+    plotConfig.max = 1000.0;
+    plotConfig.yLogscale = true;
 
-    ImGui::Begin("FFT", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
-    BeginPlot(magConfig);
+    plotConfig.label = "Mag";
+    //plotConfig.yGridInterval = 10;
+
+    plotConfig.valueMin = 0.01;
+    plotConfig.valueMax = static_cast<double>(liveState.config.sampleRate)/2.0;
+    plotConfig.xGridInterval = 0.0;
+    plotConfig.xLogscale = true;
+    plotConfig.xLogRef = 1.0;
+
+    BeginPlot(plotConfig);
     if (liveState.visible) {
-        Plot([&phaseInput](size_t idx) {
-            return phaseInput[idx].real();
+        Plot([&data](size_t idx) {
+            if (idx >= data.size()) {
+                return 0.0;
+            }
+
+            return data[idx].real();
         });
     }
 
@@ -46,35 +61,14 @@ void FftView::update(StateManager& stateManager)
         if (!state.visible) {
             continue;
         }
-        auto values = state.avgFftInput;
-        toPolar(values);
-        Plot([&values](size_t idx) {
-            return values[idx].real();
-        },
-            &state.uniqueCol);
-    }
-    EndPlot();
-
-    phaseConfig.min = -M_PI * 1.05;
-    phaseConfig.max = M_PI * 1.05;
-    phaseConfig.yGridInterval = M_PI / 4.0;
-    BeginPlot(phaseConfig);
-    if (liveState.visible) {
-        Plot([&phaseInput](size_t idx) {
-            return phaseInput[idx].imag();
-        });
-    }
-
-    for (auto& state : stateManager.getSaved()) {
-        if (!state.visible) {
-            continue;
-        }
-        auto values = state.avgFftInput;
-        toPolar(values);
-        Plot([&values](size_t idx) {
-            return values[idx].imag();
-        },
-            &state.uniqueCol);
+        auto savedData = state.fftInput;
+        toPolar(savedData);
+        Plot([&savedData](size_t idx) {
+            if (idx >= savedData.size()) {
+                return 0.0;
+            }
+            return savedData[idx].real();
+        }, &state.uniqueCol);
     }
     EndPlot();
     ImGui::End();

@@ -49,11 +49,11 @@ void ViewManager::update(ImVec2 windowSize) noexcept
     ImGui::SetNextWindowSize(ImVec2(sidebarWidth(windowSize), halfHeight(windowSize)));
     stateManager.update(audioHandler);
 
-    drawSelectorAndContent(windowSize, 0.0F);
-    drawSelectorAndContent(windowSize, halfHeight(windowSize));
+    drawSelectorAndContent(windowSize, 0.0F, upper);
+    drawSelectorAndContent(windowSize, halfHeight(windowSize), lower);
 }
 
-void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset) noexcept
+void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View view) noexcept
 {
     std::string idHint = offset == 0.0F ? "one" : "two";
     ImGui::PushID(idHint.c_str());
@@ -70,8 +70,17 @@ void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset) noexce
     // the actually selected window
     ImGui::SetNextWindowPos(ImVec2(sidebarWidth(windowSize) + viewSelectorWidth(windowSize), offset));
     ImGui::SetNextWindowSize(ImVec2(viewAreaWidth(windowSize), halfHeight(windowSize)));
-    //fftView.update(windowSize, stateManager);
-    signalView.update(stateManager, idHint);
+    switch(view) {
+
+    case View::Signal:
+        signalView.update(stateManager, idHint);
+        break;
+    case View::Mag:
+        fftView.update(stateManager, idHint);
+        break;
+    case View::Phase:
+        break;
+    }
 
     ImGui::PopID();
 }

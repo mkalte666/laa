@@ -28,6 +28,7 @@ struct PlotConfig {
     std::string yLabel = "y";
     double min = 0.0;
     double max = 1.0;
+    double yLogRef = 1.0;
     double yGridInterval = 0.0;
     bool yLogscale = false;
 
@@ -35,8 +36,9 @@ struct PlotConfig {
     std::string xLabel = "y";
     double valueMin = 0.0;
     double valueMax = 1.0;
+    double xLogRef = 1.0;
     double xGridInterval = 0.0;
-    bool xLogscale = true;
+    bool xLogscale = false;
 
     ImVec2 size = ImVec2(0.0F, 0.0F);
     ImColor color = 0xFFFFFFFFu;

@@ -27,21 +27,35 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
-    plotConfig.size = size;
-    plotConfig.count = data.size();
+    plotConfig.color = liveState.uniqueCol;
+    plotConfig.size = ImVec2(size.x*0.9F, size.y*0.9F);
+    plotConfig.count = data.size()/2;
     plotConfig.min = -1.05;
     plotConfig.max = 1.05;
     plotConfig.label = "Signal";
     plotConfig.yGridInterval = 0.25;
 
     plotConfig.valueMax = 0.0;
-    plotConfig.valueMin = 0.0 - liveState.config.samplesToSeconds(data.size());
+    plotConfig.valueMin = 0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples);
     plotConfig.xGridInterval = 0.1;
 
     BeginPlot(plotConfig);
-    Plot([&data](size_t idx) {
-        return data[idx];
-    });
+    if (liveState.visible) {
+        Plot([&data](size_t idx) {
+            return data[idx];
+        });
+    }
+    for (auto& state : stateManager.getSaved()) {
+        if (!state.visible) {
+            continue;
+        }
+        Plot([&state](size_t idx) {
+            if (idx >= state.input.size()) {
+                return 0.0;
+            }
+            return state.input[idx];
+        }, &state.uniqueCol);
+    }
     EndPlot();
     ImGui::End();
 }

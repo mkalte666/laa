@@ -34,8 +34,8 @@ void StateManager::update(AudioHandler& audioHandler)
         liveState.config = audioHandler.getConfig();
 
         audioHandler.getFrame(liveState.reference, liveState.input);
-        hamming(liveState.reference);
-        hamming(liveState.input);
+        //hamming(liveState.reference);
+        //hamming(liveState.input);
 
         liveState.fftReference = fftReal(liveState.reference);
         liveState.fftInput = fftReal(liveState.input);

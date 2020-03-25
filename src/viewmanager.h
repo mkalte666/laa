@@ -24,17 +24,25 @@
 #include "signalview.h"
 #include "statemanager.h"
 
+enum class View {
+    Signal,
+    Mag,
+    Phase
+};
+
 class ViewManager {
 public:
     void update(ImVec2 windowSize) noexcept;
 
 private:
-    void drawSelectorAndContent(ImVec2 windowSize, float offset) noexcept;
+    void drawSelectorAndContent(ImVec2 windowSize, float offset, View view) noexcept;
 
     AudioHandler audioHandler = {};
     StateManager stateManager = {};
     SignalView signalView = {};
-    //FftView fftView = {};
+    FftView fftView = {};
+    View upper = View::Mag;
+    View lower = View::Signal;
 };
 
 #endif //laa_viewmanager_h

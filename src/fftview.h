@@ -24,7 +24,7 @@
 
 class FftView {
 public:
-    void update(StateManager& stateManager);
+    void update(StateManager& stateManager, std::string idHint);
 
 private:
 };
