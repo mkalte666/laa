@@ -31,20 +31,19 @@ void FftView::update(StateManager& stateManager, std::string idHint)
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
     plotConfig.color = liveState.uniqueCol;
-    plotConfig.size = ImVec2(size.x*0.9F, size.y*0.9F);
-    plotConfig.count = data.size()/2;
-    plotConfig.min = 0.00001;
-    plotConfig.max = 1000.0;
+    plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.9F);
+    plotConfig.count = data.size() / 2;
+    plotConfig.yMin = 0.00001;
+    plotConfig.yMax = 1000.0;
     plotConfig.yLogscale = true;
 
     plotConfig.label = "Mag";
     //plotConfig.yGridInterval = 10;
 
-    plotConfig.valueMin = 0.01;
-    plotConfig.valueMax = static_cast<double>(liveState.config.sampleRate)/2.0;
+    plotConfig.xMin = 1;
+    plotConfig.xMax = static_cast<double>(liveState.config.sampleRate) / 2.0;
     plotConfig.xGridInterval = 0.0;
     plotConfig.xLogscale = true;
-    plotConfig.xLogRef = 1.0;
 
     BeginPlot(plotConfig);
     if (liveState.visible) {
@@ -68,7 +67,8 @@ void FftView::update(StateManager& stateManager, std::string idHint)
                 return 0.0;
             }
             return savedData[idx].real();
-        }, &state.uniqueCol);
+        },
+            &state.uniqueCol);
     }
     EndPlot();
     ImGui::End();

@@ -36,52 +36,46 @@ static std::stack<PlotConfig> gConfigStack;
 
 const ImColor gridColor = ImColor(0.5F, 0.5F, 0.6F, 1.0F);
 
-double convert(double min, double max, double value, double start, double end, bool log, double logRef = 1.0)
+// log convert and log convert back both operate between 0 and 1
+double logConvert(double value, double min, double max, bool isLog)
 {
-    double val = value;
-    if (log && min != 0.0) {
-        val = std::log10(value/logRef);
-        min = std::log10(min/logRef);
-        max = std::log10(max/logRef);
+    if (isLog) {
+        value = std::log(value / min) / std::log(max / min);
     }
 
-    return start + (end-start) * (val-min)/(max-min);
-
-    //return
+    return std::max(0.0, std::min(1.0, value));
 }
 
-double convert_invert(double min, double max, double value, double start, double end, bool log, double logRef)
+double logConvertBack(double value, double min, double max, bool isLog)
 {
-    double val = value;
-
-    if (log && min != 0.0) {
-        val = logRef*std::pow(10.0, val/10.0);
-        min = logRef*std::pow(10.0, min/10.0);
-        max = logRef*std::pow(10.0, max/10.0);
+    if (isLog) {
+        value = std::pow(max, value) * std::pow(min, 1.0 - value);
     }
 
-    return min + (max-min)* (val-start)/(end-start);
-    return (std::pow(max/min, val) * min - min) / (max - min);
+    return std::max(0.0, std::min(1.0, value));
 }
 
-double makeY(const PlotConfig& config, double height, double value)
+size_t pixelToIndex(double pixel, float pixels, bool isLog, size_t arraySize)
 {
-    return height - convert(config.min, config.max, value, 0.0, height, config.yLogscale, config.yLogRef);
+    double linear = pixel / static_cast<double>(pixels);
+    double min = 1.0 / pixels;
+    double max = 1.0;
+
+    double converted = logConvertBack(linear, min, max, isLog);
+    double t = converted * static_cast<double>(arraySize);
+    return static_cast<size_t>(std::round(t));
 }
 
-double invertY(const PlotConfig& config, double height, double value)
+double valueToPixel(double value, double min, double max, bool isLog, float pixels)
 {
-    return convert_invert(config.min, config.max, value+height, 0.0, height, config.yLogscale, config.yLogRef);
+    double linear = (value - min) / (max - min);
+    return logConvert(linear, min, max, isLog) * static_cast<double>(pixels);
 }
 
-double makeX(const PlotConfig& config, double height, double value)
+double pixelToValue(double pixel, double min, double max, bool isLog, float pixels)
 {
-    return convert(config.valueMin, config.valueMax, value, 0.0, height, config.xLogscale, config.xLogRef);
-}
-
-double invertX(const PlotConfig& config, double width, double value)
-{
-    return convert_invert(config.valueMin, config.valueMax, value, 0.0, width, config.xLogscale, config.yLogRef);
+    double linear = logConvertBack(pixel / static_cast<double>(pixels), min, max, isLog);
+    return min + linear * (max - min);
 }
 
 void BeginPlot(const PlotConfig& config) noexcept
@@ -101,6 +95,7 @@ void BeginPlot(const PlotConfig& config) noexcept
     ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
 
     // y grid
+    /*
     if (config.yGridInterval != 0.0) {
         for (size_t i = 0; config.min + static_cast<double>(i) * config.yGridInterval < config.max; ++i) {
             double yVal = std::round((config.min + static_cast<double>(i) * config.yGridInterval)/config.yGridInterval) * config.yGridInterval;
@@ -129,6 +124,7 @@ void BeginPlot(const PlotConfig& config) noexcept
             ImGui::GetWindowDrawList()->AddText(p1, gridColor, labelStr.c_str());
         }
     }
+     */
 }
 
 void Plot(PlotCallback callback, ImColor const* col) noexcept
@@ -164,33 +160,29 @@ void Plot(PlotCallback callback, ImColor const* col) noexcept
     double v0 = callback(0);
 
     double lastx = 0;
-    double lastY = makeY(config, static_cast<double>(frame_bb.GetHeight()), v0);
+    double lastY = valueToPixel(v0, config.yMin, config.yMax, config.yLogscale, inner_bb.GetHeight());
 
     for (int x = 1; x < static_cast<int>(inner_bb.GetWidth()); x++) {
-        double xVal = static_cast<size_t>(invertX(config, inner_bb.GetWidth(), static_cast<double>(x)));
-        //size_t t = static_cast<size_t>(std::floor(static_cast<double>(x) * step));
-        //size_t t = static_cast<size_t>(std::floor(convert_invert(0.0,static_cast<double>(config.count), static_cast<double>(x), 0.0,  static_cast<double>(inner_bb.GetWidth()), config.xLogscale, config.xLogRef)));
-        //size_t t = static_cast<size_t>(std::floor());
+        auto newX = static_cast<double>(x);
+        size_t t = pixelToIndex(newX, inner_bb.GetWidth(), config.xLogscale, config.count);
         double v = callback(t);
+        auto newY = valueToPixel(v, config.yMin, config.yMax, config.yLogscale, inner_bb.GetHeight());
 
-        double newX = static_cast<double>(x);
-        auto newY = makeY(config, static_cast<double>(frame_bb.GetHeight()), v);
-
-        ImVec2 pos1 = frame_bb.Min + ImVec2(static_cast<float>(newX), static_cast<float>(newY));
-        ImVec2 pos0 = frame_bb.Min + ImVec2(static_cast<float>(lastx), static_cast<float>(lastY));
+        ImVec2 pos1 = inner_bb.Min + ImVec2(static_cast<float>(newX), inner_bb.GetHeight() - static_cast<float>(newY));
+        ImVec2 pos0 = inner_bb.Min + ImVec2(static_cast<float>(lastx), inner_bb.GetHeight() - static_cast<float>(lastY));
         window->DrawList->AddLine(pos0, pos1, *col);
         lastx = newX;
         lastY = newY;
     }
 
     if (hovered && inner_bb.Contains(g.IO.MousePos)) {
-        ImVec2 pos0 = frame_bb.Min;
+        ImVec2 pos0 = inner_bb.Min;
         pos0.x = g.IO.MousePos.x;
-        ImVec2 pos1 = frame_bb.Max;
+        ImVec2 pos1 = inner_bb.Max;
         pos1.x = g.IO.MousePos.x;
         window->DrawList->AddLine(pos0, pos1, 0xFFFFFFFFu);
-        double x = static_cast<double>(g.IO.MousePos.x - frame_bb.Min.x);
-        size_t t = static_cast<size_t>(std::floor(convert_invert(0.0,static_cast<double>(config.count), static_cast<double>(x), 0.0,  static_cast<double>(inner_bb.GetWidth()), config.xLogscale, config.xLogRef)));
+        auto x = static_cast<double>(g.IO.MousePos.x - inner_bb.Min.x);
+        size_t t = pixelToIndex(x, inner_bb.GetWidth(), config.xLogscale, config.count);
         double v = callback(t);
         ImGui::SetTooltip("%f", v);
     }

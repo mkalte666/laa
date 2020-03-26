@@ -26,17 +26,15 @@ using PlotCallback = std::function<double(size_t index)>;
 struct PlotConfig {
     // y axis config
     std::string yLabel = "y";
-    double min = 0.0;
-    double max = 1.0;
-    double yLogRef = 1.0;
+    double yMin = 0.0;
+    double yMax = 1.0;
     double yGridInterval = 0.0;
     bool yLogscale = false;
 
     // x axis config
     std::string xLabel = "y";
-    double valueMin = 0.0;
-    double valueMax = 1.0;
-    double xLogRef = 1.0;
+    double xMin = 0.0;
+    double xMax = 1.0;
     double xGridInterval = 0.0;
     bool xLogscale = false;
 

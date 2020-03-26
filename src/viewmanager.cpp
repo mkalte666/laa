@@ -70,7 +70,7 @@ void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View v
     // the actually selected window
     ImGui::SetNextWindowPos(ImVec2(sidebarWidth(windowSize) + viewSelectorWidth(windowSize), offset));
     ImGui::SetNextWindowSize(ImVec2(viewAreaWidth(windowSize), halfHeight(windowSize)));
-    switch(view) {
+    switch (view) {
 
     case View::Signal:
         signalView.update(stateManager, idHint);
