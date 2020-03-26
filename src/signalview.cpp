@@ -35,9 +35,10 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
     plotConfig.label = "Signal";
     plotConfig.yGridInterval = 0.25;
 
-    plotConfig.xMin = 0.0;
-    plotConfig.xMax = 0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples);
+    plotConfig.xMin = 0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples);
+    plotConfig.xMax = 0.0;
     plotConfig.xGridInterval = 0.1;
+    plotConfig.xGridHint = -0.1;
 
     BeginPlot(plotConfig);
     if (liveState.visible) {

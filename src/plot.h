@@ -29,6 +29,7 @@ struct PlotConfig {
     double yMin = 0.0;
     double yMax = 1.0;
     double yGridInterval = 0.0;
+    double yGridHint = 0.0;
     bool yLogscale = false;
 
     // x axis config
@@ -36,6 +37,7 @@ struct PlotConfig {
     double xMin = 0.0;
     double xMax = 1.0;
     double xGridInterval = 0.0;
+    double xGridHint = 0.0;
     bool xLogscale = false;
 
     ImVec2 size = ImVec2(0.0F, 0.0F);

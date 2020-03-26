@@ -88,6 +88,31 @@ double pixelToValue(double pixel, double min, double max, bool isLog, float pixe
     return min + linear * (max - min);
 }
 
+std::vector<double> calcGridValues(double min, double max, double interval, double hint, bool isLog)
+{
+    std::vector<double> result;
+
+    if (isLog) {
+        return result;
+    }
+
+    auto valUp = hint;
+    auto valDown = hint;
+    for (long i = 0; valUp < max || valDown > min; ++i) {
+        if (valUp < max) {
+            result.push_back(valUp);
+        }
+
+        if (i != 0 && valDown > min) {
+            result.push_back(valDown);
+        }
+        valUp = hint + static_cast<double>(i) * interval;
+        valDown = hint - static_cast<double>(i) * interval;
+    }
+
+    return result;
+}
+
 void BeginPlot(const PlotConfig& config) noexcept
 {
     gConfigStack.push(config);
@@ -107,6 +132,23 @@ void BeginPlot(const PlotConfig& config) noexcept
     internalConfig.totalBb = ImRect(internalConfig.frameBb.Min, internalConfig.frameBb.Max + ImVec2(internalConfig.labelSize.x > 0.0f ? style.ItemInnerSpacing.x + internalConfig.labelSize.x : 0.0f, 0));
     ImGui::RenderFrame(internalConfig.frameBb.Min, internalConfig.frameBb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
 
+    auto xGridVals = calcGridValues(config.xMin, config.xMax, config.xGridInterval, config.xGridHint, config.xLogscale);
+    for (auto&& xGridVal : xGridVals) {
+        auto pixelX = valueToPixel(xGridVal, config.xMin, config.xMax, config.xLogscale, internalConfig.innerBb.GetWidth());
+        ImVec2 p0 = internalConfig.innerBb.Min + ImVec2(static_cast<float>(pixelX), 0.0);
+        ImVec2 p1 = internalConfig.innerBb.Min + ImVec2(static_cast<float>(pixelX), internalConfig.innerBb.GetHeight());
+        internalConfig.window->DrawList->AddLine(p0, p1, gridColor);
+        internalConfig.window->DrawList->AddText(p1, gridColor, toStringPrecision(xGridVal, 2).c_str());
+    }
+
+    auto yGridVals = calcGridValues(config.yMin, config.yMax, config.yGridInterval, config.yGridHint, config.yLogscale);
+    for (auto&& yGridVal : yGridVals) {
+        auto pixelY = valueToPixel(yGridVal, config.yMin, config.yMax, config.yLogscale, internalConfig.innerBb.GetHeight());
+        ImVec2 p0 = internalConfig.innerBb.Min + ImVec2(0.0, static_cast<float>(pixelY));
+        ImVec2 p1 = internalConfig.innerBb.Min + ImVec2(internalConfig.innerBb.GetWidth(), static_cast<float>(pixelY));
+        internalConfig.window->DrawList->AddLine(p0, p1, gridColor);
+        internalConfig.window->DrawList->AddText(p0, gridColor, toStringPrecision(yGridVal, 2).c_str());
+    }
     gInternalConfigStack.push(internalConfig);
 }
 
