@@ -32,7 +32,17 @@ std::string toStringPrecision(T value, long precision)
     return ss.str();
 }
 
+struct InternalPlotConfig {
+    ImVec2 labelSize = {};
+    ImRect frameBb = {};
+    ImRect innerBb = {};
+    ImRect totalBb = {};
+    bool skipped = false;
+    ImGuiWindow* window = nullptr;
+};
+
 static std::stack<PlotConfig> gConfigStack;
+static std::stack<InternalPlotConfig> gInternalConfigStack;
 
 const ImColor gridColor = ImColor(0.5F, 0.5F, 0.6F, 1.0F);
 
@@ -81,77 +91,38 @@ double pixelToValue(double pixel, double min, double max, bool isLog, float pixe
 void BeginPlot(const PlotConfig& config) noexcept
 {
     gConfigStack.push(config);
+    InternalPlotConfig internalConfig;
+    internalConfig.window = ImGui::GetCurrentWindow();
+    internalConfig.skipped = internalConfig.window->SkipItems;
 
-    auto* window = ImGui::GetCurrentWindow();
-    if (window->SkipItems) {
+    if (internalConfig.skipped) {
         return;
     }
 
     ImGuiContext& g = *GImGui;
-    ImVec2 frame_size = config.size;
     const ImGuiStyle& style = g.Style;
-    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + frame_size);
+    internalConfig.labelSize = ImGui::CalcTextSize(config.label.c_str(), NULL, true);
+    internalConfig.frameBb = ImRect(internalConfig.window->DC.CursorPos, internalConfig.window->DC.CursorPos + config.size);
+    internalConfig.innerBb = ImRect(internalConfig.frameBb.Min + style.FramePadding, internalConfig.frameBb.Max - style.FramePadding);
+    internalConfig.totalBb = ImRect(internalConfig.frameBb.Min, internalConfig.frameBb.Max + ImVec2(internalConfig.labelSize.x > 0.0f ? style.ItemInnerSpacing.x + internalConfig.labelSize.x : 0.0f, 0));
+    ImGui::RenderFrame(internalConfig.frameBb.Min, internalConfig.frameBb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
 
-    ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
-
-    // y grid
-    /*
-    if (config.yGridInterval != 0.0) {
-        for (size_t i = 0; config.min + static_cast<double>(i) * config.yGridInterval < config.max; ++i) {
-            double yVal = std::round((config.min + static_cast<double>(i) * config.yGridInterval)/config.yGridInterval) * config.yGridInterval;
-            auto y = static_cast<float>(makeY(config, frame_bb.GetHeight(), yVal));
-            ImVec2 p0(0.0, y);
-            p0 += frame_bb.Min;
-            ImVec2 p1(frame_bb.GetWidth(), y);
-            p1 += frame_bb.Min;
-            ImGui::GetWindowDrawList()->AddLine(p0, p1, gridColor);
-            auto labelStr = toStringPrecision(yVal, 2);
-            ImGui::GetWindowDrawList()->AddText(p0, gridColor, labelStr.c_str());
-        }
-    }
-
-    // x grid
-    if (config.xGridInterval != 0.0) {
-        for (size_t i = 0; config.valueMin + static_cast<double>(i) * config.xGridInterval < config.valueMax; ++i) {
-            double xVal = std::round((config.valueMin + static_cast<double>(i) * config.xGridInterval)/config.xGridInterval) * config.xGridInterval;
-            auto x = static_cast<float>(makeX(config, frame_bb.GetWidth(), xVal));
-            ImVec2 p0(x, 0.0);
-            p0 += frame_bb.Min;
-            ImVec2 p1(x, frame_bb.GetHeight());
-            p1 += frame_bb.Min;
-            ImGui::GetWindowDrawList()->AddLine(p0, p1, gridColor);
-            auto labelStr = toStringPrecision(xVal, 2);
-            ImGui::GetWindowDrawList()->AddText(p1, gridColor, labelStr.c_str());
-        }
-    }
-     */
+    gInternalConfigStack.push(internalConfig);
 }
 
 void Plot(PlotCallback callback, ImColor const* col) noexcept
 {
+    SDL2WRAP_ASSERT(!gConfigStack.empty());
+    SDL2WRAP_ASSERT(gConfigStack.size() == gInternalConfigStack.size());
     auto config = gConfigStack.top();
+    auto internalConfig = gInternalConfigStack.top();
+
     if (!col) {
         col = &config.color;
     }
-    auto* window = ImGui::GetCurrentWindow();
-    if (window->SkipItems) {
-        return;
-    }
 
-    ImGuiContext& g = *GImGui;
-    const ImGuiStyle& style = g.Style;
-    const ImGuiID id = window->GetID(config.label.c_str());
-    const ImVec2 label_size = ImGui::CalcTextSize(config.label.c_str(), NULL, true);
-    ImVec2 frame_size = config.size;
-    if (frame_size.x == 0.0f)
-        frame_size.x = ImGui::CalcItemWidth();
-    if (frame_size.y == 0.0f)
-        frame_size.y = label_size.y + (style.FramePadding.y * 2);
-
-    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + frame_size);
-    const ImRect inner_bb(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding);
-
-    const bool hovered = ImGui::ItemHoverable(frame_bb, id);
+    const ImGuiID id = internalConfig.window->GetID(config.label.c_str());
+    const bool hovered = ImGui::ItemHoverable(internalConfig.frameBb, id);
 
     if (config.count < 2u) {
         return;
@@ -160,29 +131,29 @@ void Plot(PlotCallback callback, ImColor const* col) noexcept
     double v0 = callback(0);
 
     double lastx = 0;
-    double lastY = valueToPixel(v0, config.yMin, config.yMax, config.yLogscale, inner_bb.GetHeight());
+    double lastY = valueToPixel(v0, config.yMin, config.yMax, config.yLogscale, internalConfig.innerBb.GetHeight());
 
-    for (int x = 1; x < static_cast<int>(inner_bb.GetWidth()); x++) {
+    for (int x = 1; x < static_cast<int>(internalConfig.innerBb.GetWidth()); x++) {
         auto newX = static_cast<double>(x);
-        size_t t = pixelToIndex(newX, inner_bb.GetWidth(), config.xLogscale, config.count);
+        size_t t = pixelToIndex(newX, internalConfig.innerBb.GetWidth(), config.xLogscale, config.count);
         double v = callback(t);
-        auto newY = valueToPixel(v, config.yMin, config.yMax, config.yLogscale, inner_bb.GetHeight());
+        auto newY = valueToPixel(v, config.yMin, config.yMax, config.yLogscale, internalConfig.innerBb.GetHeight());
 
-        ImVec2 pos1 = inner_bb.Min + ImVec2(static_cast<float>(newX), inner_bb.GetHeight() - static_cast<float>(newY));
-        ImVec2 pos0 = inner_bb.Min + ImVec2(static_cast<float>(lastx), inner_bb.GetHeight() - static_cast<float>(lastY));
-        window->DrawList->AddLine(pos0, pos1, *col);
+        ImVec2 pos1 = internalConfig.innerBb.Min + ImVec2(static_cast<float>(newX), internalConfig.innerBb.GetHeight() - static_cast<float>(newY));
+        ImVec2 pos0 = internalConfig.innerBb.Min + ImVec2(static_cast<float>(lastx), internalConfig.innerBb.GetHeight() - static_cast<float>(lastY));
+        internalConfig.window->DrawList->AddLine(pos0, pos1, *col);
         lastx = newX;
         lastY = newY;
     }
 
-    if (hovered && inner_bb.Contains(g.IO.MousePos)) {
-        ImVec2 pos0 = inner_bb.Min;
-        pos0.x = g.IO.MousePos.x;
-        ImVec2 pos1 = inner_bb.Max;
-        pos1.x = g.IO.MousePos.x;
-        window->DrawList->AddLine(pos0, pos1, 0xFFFFFFFFu);
-        auto x = static_cast<double>(g.IO.MousePos.x - inner_bb.Min.x);
-        size_t t = pixelToIndex(x, inner_bb.GetWidth(), config.xLogscale, config.count);
+    if (hovered && internalConfig.innerBb.Contains(GImGui->IO.MousePos)) {
+        ImVec2 pos0 = internalConfig.innerBb.Min;
+        pos0.x = GImGui->IO.MousePos.x;
+        ImVec2 pos1 = internalConfig.innerBb.Max;
+        pos1.x = GImGui->IO.MousePos.x;
+        internalConfig.window->DrawList->AddLine(pos0, pos1, 0xFFFFFFFFu);
+        auto x = static_cast<double>(GImGui->IO.MousePos.x - internalConfig.innerBb.Min.x);
+        size_t t = pixelToIndex(x, internalConfig.innerBb.GetWidth(), config.xLogscale, config.count);
         double v = callback(t);
         ImGui::SetTooltip("%f", v);
     }
@@ -191,23 +162,18 @@ void Plot(PlotCallback callback, ImColor const* col) noexcept
 void EndPlot() noexcept
 {
     SDL2WRAP_ASSERT(!gConfigStack.empty());
+    SDL2WRAP_ASSERT(gConfigStack.size() == gInternalConfigStack.size());
     auto config = gConfigStack.top();
-    auto* window = ImGui::GetCurrentWindow();
-    if (window->SkipItems) {
-        return;
-    }
+    auto internalConfig = gInternalConfigStack.top();
 
     ImGuiContext& g = *GImGui;
-    ImVec2 frame_size = config.size;
     const ImGuiStyle& style = g.Style;
-    const ImVec2 label_size = ImGui::CalcTextSize(config.label.c_str(), NULL, true);
-    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + frame_size);
-    const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0));
 
-    ImGui::ItemSize(total_bb, style.FramePadding.y);
-    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb)) {
+    ImGui::ItemSize(internalConfig.totalBb, style.FramePadding.y);
+    if (!ImGui::ItemAdd(internalConfig.totalBb, 0, &internalConfig.frameBb)) {
         return;
     }
 
     gConfigStack.pop();
+    gInternalConfigStack.pop();
 }
