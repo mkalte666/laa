@@ -53,6 +53,7 @@ void FftView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.xMin = 0.0;
         sourceConfig.xMax = static_cast<double>(liveState.config.sampleRate / 2);
         sourceConfig.color = liveState.uniqueCol;
+        sourceConfig.active = liveState.active;
         Plot(
             sourceConfig,
             [&data](size_t idx) {
@@ -61,8 +62,7 @@ void FftView::update(StateManager& stateManager, std::string idHint)
                 }
 
                 return data[idx].real();
-            },
-            liveState.active);
+            });
     }
 
     for (auto& state : stateManager.getSaved()) {
@@ -76,14 +76,14 @@ void FftView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.xMin = 0.0;
         sourceConfig.xMax = static_cast<double>(state.config.sampleRate / 2);
         sourceConfig.color = state.uniqueCol;
+        sourceConfig.active = state.active;
         Plot(
             sourceConfig, [&savedData](size_t idx) {
                 if (idx >= savedData.size()) {
                     return 0.0;
                 }
                 return savedData[idx].real();
-            },
-            state.active);
+            });
     }
 
     EndPlot();
