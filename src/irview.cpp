@@ -15,50 +15,40 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "magview.h"
-#include "dsp/windows.h"
-
-void MagView::update(StateManager& stateManager, std::string idHint)
+#include "irview.h"
+void IrView::update(StateManager& stateManager, std::string idHint)
 {
     ImGui::Begin((idHint + "Mag").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-    auto& data = liveState.avgPolarFftInput;
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
+    plotConfig.label = "IR View";
     plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.8F);
-    plotConfig.yAxisConfig.min = 0.00001;
-    plotConfig.yAxisConfig.max = 1000.0;
-    plotConfig.yAxisConfig.enableLogScale = true;
-    plotConfig.yAxisConfig.gridInterval = 1.0;
-    plotConfig.yAxisConfig.gridHint = 1.0;
+    plotConfig.yAxisConfig.min = -0.51;
+    plotConfig.yAxisConfig.max = 0.51;
+    plotConfig.yAxisConfig.gridInterval = 0.1;
 
-    plotConfig.label = "Mag";
-
-    plotConfig.xAxisConfig.min = static_cast<float>(min);
-    plotConfig.xAxisConfig.max = static_cast<float>(max);
-    plotConfig.xAxisConfig.enableLogScale = true;
-    plotConfig.xAxisConfig.gridInterval = 0.5;
-    plotConfig.xAxisConfig.gridHint = 1000.0;
-
+    plotConfig.xAxisConfig.min = -0.05F;
+    plotConfig.xAxisConfig.max = static_cast<float>(range);
+    plotConfig.xAxisConfig.gridInterval = 0.05;
+    if (range < 0.1) {
+        plotConfig.xAxisConfig.gridInterval = 0.01;
+        plotConfig.xAxisConfig.min = -0.01F;
+    }
     BeginPlot(plotConfig);
-
     if (liveState.visible) {
         PlotSourceConfig sourceConfig;
-        sourceConfig.count = data.size() / 2;
         sourceConfig.xMin = 0.0;
-        sourceConfig.xMax = static_cast<double>(liveState.config.sampleRate / 2);
+        sourceConfig.xMax = liveState.config.samplesToSeconds(liveState.config.analysisSamples);
         sourceConfig.color = liveState.uniqueCol;
         sourceConfig.active = liveState.active;
+        sourceConfig.count = liveState.impulseResponse.size();
         Plot(
             sourceConfig,
-            [&data](size_t idx) {
-                if (idx >= data.size()) {
-                    return 0.0;
-                }
-
-                return data[idx].real();
+            [&liveState](size_t idx) {
+                return liveState.impulseResponse[idx].real();
             });
     }
 
@@ -66,29 +56,22 @@ void MagView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-        auto& savedData = state.polarFftInput;
+
         PlotSourceConfig sourceConfig;
-        sourceConfig.count = savedData.size() / 2;
+        sourceConfig.count = state.impulseResponse.size();
         sourceConfig.xMin = 0.0;
-        sourceConfig.xMax = static_cast<double>(state.config.sampleRate / 2);
+        sourceConfig.xMax = state.config.samplesToSeconds(state.config.analysisSamples);
         sourceConfig.color = state.uniqueCol;
         sourceConfig.active = state.active;
         Plot(
-            sourceConfig, [&savedData](size_t idx) {
-                if (idx >= savedData.size()) {
-                    return 0.0;
-                }
-                return savedData[idx].real();
+            sourceConfig, [&state](size_t idx) {
+                return state.impulseResponse[idx].real();
             });
     }
 
     EndPlot();
 
-    ImGui::SliderFloat("min", &min, 30.0F, 20000.0F, "%.1f", 4.0F);
-    ImGui::SameLine();
-    min = std::clamp(min, 30.0F, 20000.0F);
-    ImGui::SliderFloat("max", &max, 30.0F, 20000.0F, "%.1f", 4.0F);
-    max = std::clamp(max, min, 20000.0F);
+    ImGui::SliderFloat("Range", &range, 0.0F, static_cast<float>(liveState.config.samplesToSeconds(liveState.config.analysisSamples)));
 
     ImGui::End();
 }

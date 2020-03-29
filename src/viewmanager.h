@@ -19,15 +19,19 @@
 #define laa_viewmanager_h
 
 #include "audiohandler.h"
+#include "irview.h"
 #include "magview.h"
+#include "phaseview.h"
 #include "shared.h"
 #include "signalview.h"
 #include "statemanager.h"
 
 enum class View {
     Signal,
-    Mag,
-    Phase
+    Magnitude,
+    Phase,
+    ImpulseResponse,
+    FrequencyResponse
 };
 
 class ViewManager {
@@ -35,13 +39,15 @@ public:
     void update(ImVec2 windowSize) noexcept;
 
 private:
-    void drawSelectorAndContent(ImVec2 windowSize, float offset, View view) noexcept;
+    void drawSelectorAndContent(ImVec2 windowSize, float offset, View& view) noexcept;
 
     AudioHandler audioHandler = {};
     StateManager stateManager = {};
     SignalView signalView = {};
     MagView fftView = {};
-    View upper = View::Mag;
+    PhaseView phaseView = {};
+    IrView irView = {};
+    View upper = View::Magnitude;
     View lower = View::Signal;
 };
 

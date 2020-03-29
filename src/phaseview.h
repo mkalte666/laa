@@ -15,14 +15,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef laa_magview_h
-#define laa_magview_h
+#ifndef laa_phaseview_h
+#define laa_phaseview_h
 
-#include "audiohandler.h"
-#include "dsp/fft.h"
 #include "statemanager.h"
 
-class MagView {
+class PhaseView {
 public:
     void update(StateManager& stateManager, std::string idHint);
 
@@ -31,4 +29,4 @@ private:
     float max = 20000.0F;
 };
 
-#endif //laa_magview_h
+#endif //laa_phaseview_h

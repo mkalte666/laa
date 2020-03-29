@@ -54,12 +54,16 @@ add_executable(laatool
         src/dsp/fft.h
         src/magview.cpp
         src/magview.h
-        src/dsp/hamming.h
+        src/dsp/windows.h
         src/statemanager.cpp
         src/statemanager.h
         src/dsp/avg.h
         src/signalview.cpp
-        src/signalview.h)
+        src/signalview.h
+        src/irview.cpp
+        src/irview.h
+        src/phaseview.cpp
+        src/phaseview.h)
 
 target_link_libraries(laatool PRIVATE imgui gl3w sdl2wrap::sdl2 OpenGL::GL imguiplot)
 

@@ -21,7 +21,7 @@
 #include "audiohandler.h"
 #include "dsp/avg.h"
 #include "dsp/fft.h"
-#include "dsp/hamming.h"
+#include "dsp/windows.h"
 
 #include <list>
 
@@ -47,7 +47,14 @@ struct State {
     ComplexVec impulseResponse = {};
 
     // operations on the averged fft
-    // TODO: add me
+    size_t avgCount = 4;
+    std::vector<ComplexVec> pastFftReference = {};
+    std::vector<ComplexVec> pastFftInput = {};
+    ComplexVec avgFftReference = {};
+    ComplexVec avgFftInput = {};
+    ComplexVec avgPolarFftInput = {};
+    ComplexVec avgFrequencyResponse = {};
+    ComplexVec avgImpluseResponse = {};
 };
 
 ImColor randColor();
@@ -64,6 +71,7 @@ public:
 
 private:
     void deactivateAll();
+    void resetAvg();
     size_t lastFrame = 0;
     State liveState = {};
 

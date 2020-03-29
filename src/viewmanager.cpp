@@ -26,7 +26,7 @@ float sidebarWidth(ImVec2 windowSize) noexcept
 
 float viewSelectorWidth(ImVec2 windowSize) noexcept
 {
-    return sidebarWidth(windowSize) / 2.0F;
+    return sidebarWidth(windowSize) / 1.5F;
 }
 
 float viewAreaWidth(ImVec2 windowSize) noexcept
@@ -53,7 +53,7 @@ void ViewManager::update(ImVec2 windowSize) noexcept
     drawSelectorAndContent(windowSize, halfHeight(windowSize), lower);
 }
 
-void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View view) noexcept
+void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View& view) noexcept
 {
     std::string idHint = offset == 0.0F ? "one" : "two";
     ImGui::PushID(idHint.c_str());
@@ -63,7 +63,23 @@ void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View v
     ImGui::SetNextWindowSize(ImVec2(viewSelectorWidth(windowSize), halfHeight(windowSize)));
     ImGui::Begin(idHint.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
     ImGui::PushItemWidth(-1);
-
+    ImGui::Text("Signal");
+    if (ImGui::Button("Signal")) {
+        view = View::Signal;
+    }
+    ImGui::Text("Fourier Transform");
+    if (ImGui::Button("Magnitude")) {
+        view = View::Magnitude;
+    }
+    if (ImGui::Button("Phase")) {
+        view = View::Phase;
+    }
+    if (ImGui::Button("Impulse Response")) {
+        view = View::ImpulseResponse;
+    }
+    if (ImGui::Button("Frequency Response")) {
+        view = View::FrequencyResponse;
+    }
     ImGui::PopItemWidth();
     ImGui::End();
 
@@ -75,10 +91,16 @@ void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View v
     case View::Signal:
         signalView.update(stateManager, idHint);
         break;
-    case View::Mag:
+    case View::Magnitude:
         fftView.update(stateManager, idHint);
         break;
     case View::Phase:
+        phaseView.update(stateManager, idHint);
+        break;
+    case View::ImpulseResponse:
+        irView.update(stateManager, idHint);
+        break;
+    case View::FrequencyResponse:
         break;
     }
 

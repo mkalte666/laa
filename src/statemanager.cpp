@@ -51,21 +51,55 @@ void StateManager::update(AudioHandler& audioHandler)
         audioHandler.getFrame(liveState.reference, liveState.input);
 
         liveState.windowedReference = liveState.reference;
-        hamming(liveState.windowedReference);
+        blackman(liveState.windowedReference);
         liveState.windowedInput = liveState.input;
-        hamming(liveState.windowedInput);
+        blackman(liveState.windowedInput);
 
         liveState.fftReference = fftReal(liveState.windowedReference);
         liveState.fftInput = fftReal(liveState.windowedInput);
         liveState.polarFftInput = liveState.fftInput;
         toPolar(liveState.polarFftInput);
 
+        if (liveState.avgCount == 0) {
+            liveState.avgFftReference = liveState.fftReference;
+            liveState.avgFftInput = liveState.fftInput;
+        } else {
+            if (liveState.pastFftInput.size() != liveState.avgCount || liveState.pastFftReference.size() != liveState.avgCount) {
+                resetAvg();
+            }
+
+            for (size_t i = 1; i < liveState.avgCount; i++) {
+                liveState.pastFftInput[i - 1] = std::move(liveState.pastFftInput[i]);
+                liveState.pastFftReference[i - 1] = std::move(liveState.pastFftReference[i]);
+            }
+            liveState.pastFftReference.back() = liveState.fftReference;
+            liveState.pastFftInput.back() = liveState.fftInput;
+
+            liveState.avgFftReference.resize(liveState.fftReference.size(), 0.0);
+            liveState.avgFftInput.resize(liveState.fftInput.size(), 0.0);
+            double dCount = static_cast<double>(liveState.avgCount);
+            for (size_t i = 0; i < liveState.avgFftReference.size(); i++) {
+                for (size_t iAvg = 0; iAvg < liveState.avgCount; iAvg++) {
+                    liveState.avgFftReference[i] += liveState.pastFftReference[iAvg][i];
+                    liveState.avgFftInput[i] += liveState.pastFftInput[iAvg][i];
+                }
+                liveState.avgFftReference[i] /= dCount;
+                liveState.avgFftInput[i] /= dCount;
+            }
+        }
+
+        liveState.avgPolarFftInput = liveState.avgFftInput;
+        toPolar(liveState.avgPolarFftInput);
+
         liveState.frequencyResponse.resize(liveState.input.size());
+        liveState.avgFrequencyResponse.resize(liveState.input.size());
         for (size_t i = 0; i < liveState.fftInput.size(); i++) {
             liveState.frequencyResponse[i] = liveState.fftReference[i] / liveState.fftInput[i];
+            liveState.avgFrequencyResponse[i] = liveState.avgFftReference[i] / liveState.avgFftInput[i];
         }
 
         liveState.impulseResponse = ifft(liveState.frequencyResponse);
+        liveState.avgImpluseResponse = ifft(liveState.avgFrequencyResponse);
     }
 
     ImGui::Begin("Snapshot Control", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
@@ -138,5 +172,18 @@ void StateManager::deactivateAll()
     liveState.active = false;
     for (auto& state : saved) {
         state.active = false;
+    }
+}
+void StateManager::resetAvg()
+{
+    liveState.pastFftReference.clear();
+    liveState.pastFftInput.clear();
+
+    liveState.pastFftReference.resize(liveState.avgCount);
+    liveState.pastFftInput.resize(liveState.avgCount);
+
+    for (size_t i = 0; i < liveState.avgCount; i++) {
+        liveState.pastFftReference[i].resize(liveState.fftReference.size(), 0.0);
+        liveState.pastFftInput[i].resize(liveState.fftInput.size(), 0.0);
     }
 }

@@ -15,12 +15,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "magview.h"
-#include "dsp/windows.h"
-
-void MagView::update(StateManager& stateManager, std::string idHint)
+#include "phaseview.h"
+void PhaseView::update(StateManager& stateManager, std::string idHint)
 {
-    ImGui::Begin((idHint + "Mag").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    ImGui::Begin((idHint + "Phase").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
     auto& data = liveState.avgPolarFftInput;
@@ -28,11 +26,10 @@ void MagView::update(StateManager& stateManager, std::string idHint)
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
     plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.8F);
-    plotConfig.yAxisConfig.min = 0.00001;
-    plotConfig.yAxisConfig.max = 1000.0;
-    plotConfig.yAxisConfig.enableLogScale = true;
-    plotConfig.yAxisConfig.gridInterval = 1.0;
-    plotConfig.yAxisConfig.gridHint = 1.0;
+    plotConfig.yAxisConfig.min = -M_PI;
+    plotConfig.yAxisConfig.max = M_PI;
+    plotConfig.yAxisConfig.enableLogScale = false;
+    plotConfig.yAxisConfig.gridInterval = M_PI / 2;
 
     plotConfig.label = "Mag";
 
@@ -58,7 +55,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
                     return 0.0;
                 }
 
-                return data[idx].real();
+                return data[idx].imag();
             });
     }
 
@@ -78,7 +75,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
                 if (idx >= savedData.size()) {
                     return 0.0;
                 }
-                return savedData[idx].real();
+                return savedData[idx].imag();
             });
     }
 

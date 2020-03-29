@@ -15,20 +15,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef laa_hamming_h
-#define laa_hamming_h
+#ifndef laa_irview_h
+#define laa_irview_h
 
-#include <cmath>
-#include <vector>
+#include "audiohandler.h"
+#include "dsp/fft.h"
+#include "statemanager.h"
 
-template <class T>
-inline void hamming(std::vector<T>& x)
-{
-    auto M = static_cast<double>(x.size());
-    for (size_t i = 0; i < x.size(); i++) {
-        auto di = static_cast<double>(i);
-        x[i] *= 0.54 - 0.46 * std::cos(2.0 * M_PI * di / M);
-    }
-}
+class IrView {
+public:
+    void update(StateManager& stateManager, std::string idHint);
 
-#endif //laa_hamming_h
+private:
+    float range = 1.0F;
+};
+#endif //laa_irview_h
