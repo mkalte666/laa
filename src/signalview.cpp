@@ -27,14 +27,17 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
     plotConfig.label = "Signal";
-    plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.9F);
+    plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.8F);
     plotConfig.yAxisConfig.min = -1.05;
     plotConfig.yAxisConfig.max = 1.05;
     plotConfig.yAxisConfig.gridInterval = 0.25;
 
-    plotConfig.xAxisConfig.min = 0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples);
+    if (min == 0.0F) {
+        min = static_cast<float>(0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples));
+    }
+    plotConfig.xAxisConfig.min = static_cast<double>(min);
     plotConfig.xAxisConfig.max = 0.0;
-    plotConfig.xAxisConfig.gridInterval = 0.1;
+    plotConfig.xAxisConfig.gridInterval = 0.05;
 
     BeginPlot(plotConfig);
     if (liveState.visible) {
@@ -67,5 +70,8 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
     }
 
     EndPlot();
+
+    ImGui::SliderFloat("Range", &min, static_cast<float>(0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples)), 0.0F);
+
     ImGui::End();
 }

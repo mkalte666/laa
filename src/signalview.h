@@ -24,6 +24,9 @@
 class SignalView {
 public:
     void update(StateManager& stateManager, std::string idHint) noexcept;
+
+private:
+    float min = 0.0F;
 };
 
 #endif //laa_signalview_h
