@@ -65,6 +65,14 @@ add_executable(laatool
         src/phaseview.cpp
         src/phaseview.h src/freqview.cpp src/freqview.h)
 
-target_link_libraries(laatool PRIVATE imgui gl3w sdl2wrap::sdl2 OpenGL::GL imguiplot)
 
-enableStrictOptions(laatool)
+
+if(MINGW)
+    add_definitions(-DNOMINMAX)
+    find_package(SDL2 REQUIRED)
+    target_link_libraries(laatool PRIVATE mingw32 imgui gl3w SDL2::SDL2main sdl2wrap::sdl2 OpenGL::GL imguiplot)
+    message("Mingw builds are buggy")
+else()
+    target_link_libraries(laatool PRIVATE imgui gl3w sdl2wrap::sdl2 OpenGL::GL imguiplot)
+    enableStrictOptions(laatool)
+    endif()
