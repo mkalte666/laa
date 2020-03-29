@@ -46,6 +46,7 @@ void StateManager::update(AudioHandler& audioHandler)
 {
     if (audioHandler.getFrameCount() > lastFrame) {
         lastFrame = audioHandler.getFrameCount();
+        bool configAvgResetNeede = liveState.config.analysisSamples != audioHandler.getConfig().analysisSamples;
         liveState.config = audioHandler.getConfig();
 
         audioHandler.getFrame(liveState.reference, liveState.input);
@@ -64,7 +65,7 @@ void StateManager::update(AudioHandler& audioHandler)
             liveState.avgFftReference = liveState.fftReference;
             liveState.avgFftInput = liveState.fftInput;
         } else {
-            if (liveState.pastFftInput.size() != liveState.avgCount || liveState.pastFftReference.size() != liveState.avgCount) {
+            if (liveState.pastFftInput.size() != liveState.avgCount || liveState.pastFftReference.size() != liveState.avgCount || configAvgResetNeede) {
                 resetAvg();
             }
 
