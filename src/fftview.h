@@ -27,6 +27,8 @@ public:
     void update(StateManager& stateManager, std::string idHint);
 
 private:
+    float min = 30.0F;
+    float max = 20000.0F;
 };
 
 #endif //LAA_FFTVIEW_H

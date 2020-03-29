@@ -27,7 +27,7 @@
 
 struct State {
     AudioConfig config = {};
-    ImColor uniqueCol = {};
+    ImColor uniqueCol = 0xFFFFFFFF;
     bool visible = true;
     std::string name = "Capture";
 

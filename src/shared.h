@@ -27,6 +27,7 @@
 #include "examples/imgui_impl_sdl.h"
 #include "misc/cpp/imgui_stdlib.h"
 // clang-format on
+#include "imguiplot.h"
 
 #include <GL/gl3w.h>
 

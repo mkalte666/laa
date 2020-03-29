@@ -20,10 +20,25 @@
 
 ImColor randColor()
 {
-    float h = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 360.0F;
-    float s = 90.0F + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 10.0F;
-    float v = 50.0F + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 10.0F;
-    auto col = ImColor::HSV(h, s, v);
+    static std::vector<ImColor> colors = {};
+
+    if (colors.empty()) {
+        colors.emplace_back(255, 0, 0, 255);
+        colors.emplace_back(0, 255, 0, 255);
+        colors.emplace_back(0, 0, 255, 255);
+        colors.emplace_back(255, 0, 255, 255);
+        colors.emplace_back(0, 255, 255, 255);
+        colors.emplace_back(255, 255, 0, 255);
+        colors.emplace_back(125, 0, 0, 125);
+        colors.emplace_back(0, 125, 0, 125);
+        colors.emplace_back(0, 0, 125, 125);
+        colors.emplace_back(125, 0, 125, 125);
+        colors.emplace_back(0, 125, 125, 125);
+        colors.emplace_back(125, 125, 0, 125);
+    }
+
+    auto col = colors.back();
+    colors.pop_back();
     return col;
 }
 
@@ -106,6 +121,5 @@ const std::list<State>& StateManager::getSaved() const noexcept
 
 StateManager::StateManager() noexcept
 {
-    liveState.uniqueCol = randColor();
     liveState.name = "Live";
 }

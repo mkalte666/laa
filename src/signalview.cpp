@@ -16,7 +16,6 @@
  */
 
 #include "signalview.h"
-#include "plot.h"
 
 void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
 {
@@ -24,40 +23,49 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
 
     const auto& liveState = stateManager.getLive();
     const auto& data = liveState.input;
-
+    (void)data;
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
-    plotConfig.color = liveState.uniqueCol;
-    plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.9F);
-    plotConfig.count = data.size() / 2;
-    plotConfig.yMin = -1.05;
-    plotConfig.yMax = 1.05;
     plotConfig.label = "Signal";
-    plotConfig.yGridInterval = 0.25;
+    plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.9F);
+    plotConfig.yAxisConfig.min = -1.05;
+    plotConfig.yAxisConfig.max = 1.05;
+    plotConfig.yAxisConfig.gridInterval = 0.25;
 
-    plotConfig.xMin = 0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples);
-    plotConfig.xMax = 0.0;
-    plotConfig.xGridInterval = 0.1;
-    plotConfig.xGridHint = -0.1;
+    plotConfig.xAxisConfig.min = 0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples);
+    plotConfig.xAxisConfig.max = 0.0;
+    plotConfig.xAxisConfig.gridInterval = 0.1;
 
     BeginPlot(plotConfig);
     if (liveState.visible) {
-        Plot([&data](size_t idx) {
+        PlotSourceConfig sourceConfig;
+        sourceConfig.count = data.size();
+        sourceConfig.xMin = 0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples);
+        sourceConfig.xMax = 0.0;
+        sourceConfig.color = liveState.uniqueCol;
+        Plot(sourceConfig, [&data](size_t idx) {
             return data[idx];
         });
     }
+
     for (auto& state : stateManager.getSaved()) {
         if (!state.visible) {
             continue;
         }
-        Plot([&state](size_t idx) {
+
+        PlotSourceConfig sourceConfig;
+        sourceConfig.count = state.input.size();
+        sourceConfig.xMin = 0.0 - state.config.samplesToSeconds(liveState.config.analysisSamples);
+        sourceConfig.xMax = 0.0;
+        sourceConfig.color = state.uniqueCol;
+        Plot(sourceConfig, [&state](size_t idx) {
             if (idx >= state.input.size()) {
                 return 0.0;
             }
             return state.input[idx];
-        },
-            &state.uniqueCol);
+        });
     }
+
     EndPlot();
     ImGui::End();
 }

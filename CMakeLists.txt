@@ -31,7 +31,10 @@ set(CMAKE_CXX_STANDARD 17)
 project(LAA)
 
 add_subdirectory(3rdparty/sdl2wrap)
+set(imguiIncludeDir ${CMAKE_SOURCE_DIR}/3rdparty/imgui-cmake-blob/imgui/ CACHE PATH "Path to imgui headers")
 add_subdirectory(3rdparty/imgui-cmake-blob)
+
+add_subdirectory(3rdparty/imguiplot)
 find_package(OpenGL REQUIRED)
 
 add_executable(laatool
@@ -55,9 +58,9 @@ add_executable(laatool
         src/statemanager.cpp
         src/statemanager.h
         src/dsp/avg.h
-        src/plot.cpp
-        src/plot.h src/signalview.cpp src/signalview.h)
+        src/signalview.cpp
+        src/signalview.h)
 
-target_link_libraries(laatool PRIVATE imgui gl3w sdl2wrap::sdl2 OpenGL::GL)
+target_link_libraries(laatool PRIVATE imgui gl3w sdl2wrap::sdl2 OpenGL::GL imguiplot)
 
 enableStrictOptions(laatool)

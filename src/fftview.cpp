@@ -18,10 +18,9 @@
 #include "fftview.h"
 #include "dsp/hamming.h"
 
-#include "plot.h"
-
 void FftView::update(StateManager& stateManager, std::string idHint)
 {
+    (void)stateManager;
     ImGui::Begin((idHint + "Mag").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
@@ -30,30 +29,38 @@ void FftView::update(StateManager& stateManager, std::string idHint)
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
-    plotConfig.color = liveState.uniqueCol;
-    plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.9F);
-    plotConfig.count = data.size() / 2;
-    plotConfig.yMin = 0.00001;
-    plotConfig.yMax = 1000.0;
-    plotConfig.yLogscale = true;
+    plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.8F);
+    plotConfig.yAxisConfig.min = 0.00001;
+    plotConfig.yAxisConfig.max = 1000.0;
+    plotConfig.yAxisConfig.enableLogScale = true;
+    plotConfig.yAxisConfig.gridInterval = 1.0;
+    plotConfig.yAxisConfig.gridHint = 1.0;
 
     plotConfig.label = "Mag";
     //plotConfig.yGridInterval = 10;
 
-    plotConfig.xMin = 1;
-    plotConfig.xMax = static_cast<double>(liveState.config.sampleRate) / 2.0;
-    plotConfig.xGridInterval = 0.0;
-    plotConfig.xLogscale = true;
+    plotConfig.xAxisConfig.min = static_cast<float>(min);
+    plotConfig.xAxisConfig.max = static_cast<float>(max);
+    plotConfig.xAxisConfig.enableLogScale = true;
+    plotConfig.xAxisConfig.gridInterval = 0.5;
+    plotConfig.xAxisConfig.gridHint = 1000.0;
 
     BeginPlot(plotConfig);
-    if (liveState.visible) {
-        Plot([&data](size_t idx) {
-            if (idx >= data.size()) {
-                return 0.0;
-            }
 
-            return data[idx].real();
-        });
+    if (liveState.visible) {
+        PlotSourceConfig sourceConfig;
+        sourceConfig.count = data.size() / 2;
+        sourceConfig.xMin = 0.0;
+        sourceConfig.xMax = static_cast<double>(liveState.config.sampleRate / 2);
+        sourceConfig.color = liveState.uniqueCol;
+        Plot(sourceConfig,
+            [&data](size_t idx) {
+                if (idx >= data.size()) {
+                    return 0.0;
+                }
+
+                return data[idx].real();
+            });
     }
 
     for (auto& state : stateManager.getSaved()) {
@@ -62,14 +69,26 @@ void FftView::update(StateManager& stateManager, std::string idHint)
         }
         auto savedData = state.fftInput;
         toPolar(savedData);
-        Plot([&savedData](size_t idx) {
+        PlotSourceConfig sourceConfig;
+        sourceConfig.count = savedData.size() / 2;
+        sourceConfig.xMin = 0.0;
+        sourceConfig.xMax = static_cast<double>(state.config.sampleRate / 2);
+        sourceConfig.color = state.uniqueCol;
+        Plot(sourceConfig, [&savedData](size_t idx) {
             if (idx >= savedData.size()) {
                 return 0.0;
             }
             return savedData[idx].real();
-        },
-            &state.uniqueCol);
+        });
     }
+
     EndPlot();
+
+    ImGui::SliderFloat("min", &min, 30.0F, 20000.0F, "%.1f", 4.0F);
+    ImGui::SameLine();
+    min = std::clamp(min, 30.0F, 20000.0F);
+    ImGui::SliderFloat("max", &max, 30.0F, 20000.0F, "%.1f", 4.0F);
+    max = std::clamp(max, min, 20000.0F);
+
     ImGui::End();
 }
