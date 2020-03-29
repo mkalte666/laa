@@ -101,6 +101,7 @@ void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View& 
         irView.update(stateManager, idHint);
         break;
     case View::FrequencyResponse:
+        freqView.update(stateManager, idHint);
         break;
     }
 

@@ -94,8 +94,10 @@ void StateManager::update(AudioHandler& audioHandler)
         liveState.frequencyResponse.resize(liveState.input.size());
         liveState.avgFrequencyResponse.resize(liveState.input.size());
         for (size_t i = 0; i < liveState.fftInput.size(); i++) {
-            liveState.frequencyResponse[i] = liveState.fftReference[i] / liveState.fftInput[i];
-            liveState.avgFrequencyResponse[i] = liveState.avgFftReference[i] / liveState.avgFftInput[i];
+            liveState.frequencyResponse[i] = liveState.fftInput[i] / liveState.fftReference[i];
+            liveState.avgFrequencyResponse[i] = liveState.avgFftInput[i] / liveState.avgFftReference[i];
+            //liveState.frequencyResponse[i] = liveState.fftReference[i] / liveState.fftInput[i];
+            //liveState.avgFrequencyResponse[i] = liveState.avgFftReference[i] / liveState.avgFftInput[i];
         }
 
         liveState.impulseResponse = ifft(liveState.frequencyResponse);

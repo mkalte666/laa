@@ -15,12 +15,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef laa_magview_h
-#define laa_magview_h
+#ifndef laa_freqview_h
+#define laa_freqview_h
 
 #include "statemanager.h"
 
-class MagView {
+class FreqView {
 public:
     void update(StateManager& stateManager, std::string idHint);
 
@@ -29,4 +29,4 @@ private:
     float max = 20000.0F;
 };
 
-#endif //laa_magview_h
+#endif //laa_freqview_h

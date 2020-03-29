@@ -19,6 +19,7 @@
 #define laa_viewmanager_h
 
 #include "audiohandler.h"
+#include "freqview.h"
 #include "irview.h"
 #include "magview.h"
 #include "phaseview.h"
@@ -47,6 +48,7 @@ private:
     MagView fftView = {};
     PhaseView phaseView = {};
     IrView irView = {};
+    FreqView freqView = {};
     View upper = View::Magnitude;
     View lower = View::Signal;
 };

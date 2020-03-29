@@ -63,7 +63,7 @@ add_executable(laatool
         src/irview.cpp
         src/irview.h
         src/phaseview.cpp
-        src/phaseview.h)
+        src/phaseview.h src/freqview.cpp src/freqview.h)
 
 target_link_libraries(laatool PRIVATE imgui gl3w sdl2wrap::sdl2 OpenGL::GL imguiplot)
 
