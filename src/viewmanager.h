@@ -19,7 +19,7 @@
 #define laa_viewmanager_h
 
 #include "audiohandler.h"
-#include "fftview.h"
+#include "magview.h"
 #include "shared.h"
 #include "signalview.h"
 #include "statemanager.h"
@@ -40,7 +40,7 @@ private:
     AudioHandler audioHandler = {};
     StateManager stateManager = {};
     SignalView signalView = {};
-    FftView fftView = {};
+    MagView fftView = {};
     View upper = View::Mag;
     View lower = View::Signal;
 };

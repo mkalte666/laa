@@ -52,8 +52,8 @@ add_executable(laatool
         src/dsp/sinegenerator.cpp
         src/dsp/sinegenerator.h
         src/dsp/fft.h
-        src/fftview.cpp
-        src/fftview.h
+        src/magview.cpp
+        src/magview.h
         src/dsp/hamming.h
         src/statemanager.cpp
         src/statemanager.h

@@ -32,15 +32,22 @@ struct State {
     bool active = false;
     std::string name = "Capture";
 
+    // raw values
     RealVec reference = {};
     RealVec input = {};
+    // filtered raw values
+    RealVec windowedReference = {};
+    RealVec windowedInput = {};
+
+    // operations on the direct fft
     ComplexVec fftReference = {};
     ComplexVec fftInput = {};
-    ComplexVec avgFftReference = {};
-    ComplexVec avgFftInput = {};
-    ComplexVec H = {};
-    ComplexVec avgH = {};
-    ComplexVec h = {};
+    ComplexVec polarFftInput = {};
+    ComplexVec frequencyResponse = {};
+    ComplexVec impulseResponse = {};
+
+    // operations on the averged fft
+    // TODO: add me
 };
 
 ImColor randColor();

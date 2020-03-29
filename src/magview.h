@@ -15,14 +15,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LAA_FFTVIEW_H
-#define LAA_FFTVIEW_H
+#ifndef LAA_MAGVIEW_H
+#define LAA_MAGVIEW_H
 
 #include "audiohandler.h"
 #include "dsp/fft.h"
 #include "statemanager.h"
 
-class FftView {
+class MagView {
 public:
     void update(StateManager& stateManager, std::string idHint);
 
@@ -31,4 +31,4 @@ private:
     float max = 20000.0F;
 };
 
-#endif //LAA_FFTVIEW_H
+#endif //LAA_MAGVIEW_H

@@ -15,17 +15,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "fftview.h"
+#include "magview.h"
 #include "dsp/hamming.h"
 
-void FftView::update(StateManager& stateManager, std::string idHint)
+void MagView::update(StateManager& stateManager, std::string idHint)
 {
     (void)stateManager;
     ImGui::Begin((idHint + "Mag").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-    auto data = liveState.fftInput;
-    toPolar(data);
+    auto& data = liveState.polarFftInput;
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
@@ -69,8 +68,7 @@ void FftView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-        auto savedData = state.fftInput;
-        toPolar(savedData);
+        auto& savedData = state.polarFftInput;
         PlotSourceConfig sourceConfig;
         sourceConfig.count = savedData.size() / 2;
         sourceConfig.xMin = 0.0;
