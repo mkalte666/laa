@@ -46,9 +46,11 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
         sourceConfig.xMin = 0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples);
         sourceConfig.xMax = 0.0;
         sourceConfig.color = liveState.uniqueCol;
-        Plot(sourceConfig, [&data](size_t idx) {
-            return data[idx];
-        });
+        Plot(
+            sourceConfig, [&data](size_t idx) {
+                return data[idx];
+            },
+            liveState.active);
     }
 
     for (auto& state : stateManager.getSaved()) {
@@ -61,12 +63,14 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
         sourceConfig.xMin = 0.0 - state.config.samplesToSeconds(liveState.config.analysisSamples);
         sourceConfig.xMax = 0.0;
         sourceConfig.color = state.uniqueCol;
-        Plot(sourceConfig, [&state](size_t idx) {
-            if (idx >= state.input.size()) {
-                return 0.0;
-            }
-            return state.input[idx];
-        });
+        Plot(
+            sourceConfig, [&state](size_t idx) {
+                if (idx >= state.input.size()) {
+                    return 0.0;
+                }
+                return state.input[idx];
+            },
+            state.active);
     }
 
     EndPlot();

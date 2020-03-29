@@ -29,6 +29,7 @@ struct State {
     AudioConfig config = {};
     ImColor uniqueCol = 0xFFFFFFFF;
     bool visible = true;
+    bool active = false;
     std::string name = "Capture";
 
     RealVec reference = {};
@@ -55,6 +56,7 @@ public:
     const std::list<State>& getSaved() const noexcept;
 
 private:
+    void deactivateAll();
     size_t lastFrame = 0;
     State liveState = {};
 

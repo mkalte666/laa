@@ -76,9 +76,15 @@ void StateManager::update(AudioHandler& audioHandler)
     if (ImGui::Button("Capture")) {
         auto copy = liveState;
         copy.uniqueCol = randColor();
+        copy.active = false;
         saved.push_back(copy);
     }
 
+    if (ImGui::RadioButton("##liveRadio", liveState.active)) {
+        deactivateAll();
+        liveState.active = true;
+    }
+    ImGui::SameLine();
     ImGui::ColorButton("Live Data", liveState.uniqueCol);
     ImGui::SameLine();
     ImGui::Checkbox("Live Data##liveData", &liveState.visible);
@@ -88,6 +94,11 @@ void StateManager::update(AudioHandler& audioHandler)
     while (iter != saved.end()) {
         c++;
         ImGui::PushID(c);
+        if (ImGui::RadioButton("##savedRadio", iter->active)) {
+            deactivateAll();
+            iter->active = true;
+        }
+        ImGui::SameLine();
         ImGui::ColorButton(iter->name.c_str(), iter->uniqueCol);
         ImGui::SameLine();
         ImGui::Checkbox("##ShowliveData", &iter->visible);
@@ -122,4 +133,13 @@ const std::list<State>& StateManager::getSaved() const noexcept
 StateManager::StateManager() noexcept
 {
     liveState.name = "Live";
+    liveState.active = true;
+}
+
+void StateManager::deactivateAll()
+{
+    liveState.active = false;
+    for (auto& state : saved) {
+        state.active = false;
+    }
 }
