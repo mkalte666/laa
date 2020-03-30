@@ -27,7 +27,7 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
     PlotConfig plotConfig;
     plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.8F);
     plotConfig.yAxisConfig.min = 0.0;
-    plotConfig.yAxisConfig.max = 1.0;
+    plotConfig.yAxisConfig.max = 2.0;
     plotConfig.yAxisConfig.gridInterval = 0.25;
 
     plotConfig.label = "Mag";

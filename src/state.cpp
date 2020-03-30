@@ -35,7 +35,7 @@ State::State(size_t fftLen) noexcept
 
     fftInputPlan = fftw_plan_dft_r2c_1d(static_cast<int>(data.fftLen), reinterpret_cast<double*>(data.windowedInput.data()), reinterpret_cast<fftw_complex*>(data.fftInput.data()), FFTW_MEASURE);
     fftReferencePlan = fftw_plan_dft_r2c_1d(static_cast<int>(data.fftLen), reinterpret_cast<double*>(data.windowedReference.data()), reinterpret_cast<fftw_complex*>(data.fftReference.data()), FFTW_MEASURE);
-    impulseResponsePlan = fftw_plan_dft_c2r_1d(static_cast<int>(data.fftLen), reinterpret_cast<fftw_complex*>(data.frequencyResponse.data()), reinterpret_cast<double*>(data.impulseResponse.data()), FFTW_MEASURE);
+    impulseResponsePlan = fftw_plan_dft_c2r_1d(static_cast<int>(data.fftLen), reinterpret_cast<fftw_complex*>(data.frequencyResponse.data()), reinterpret_cast<double*>(data.impulseResponse.data()), FFTW_MEASURE | FFTW_PRESERVE_INPUT);
 }
 
 State::~State() noexcept
@@ -67,7 +67,7 @@ void State::calc() noexcept
         data.filteredMagFftInput[i] = mag(data.filteredFftInput[i]);
         data.phaseDelta[i] = phase(data.filteredFftInput[i]) - phase(data.filteredFftReference[i]);
 
-        // frequency response
+        // frequency response XxH = Y => H = Y/X
         data.frequencyResponse[i] = data.filteredFftInput[i] / data.filteredFftReference[i];
     }
 
