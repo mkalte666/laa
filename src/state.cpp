@@ -73,6 +73,11 @@ void State::calc() noexcept
 
     // compute impulse response
     fftw_execute(impulseResponsePlan);
+    // thise one is unnormalited however
+    auto dFftLen = static_cast<double>(data.fftLen);
+    for (size_t i = 0; i < data.fftLen; ++i) {
+        data.impulseResponse[i] /= dFftLen;
+    }
 }
 
 const StateData& State::getData() noexcept

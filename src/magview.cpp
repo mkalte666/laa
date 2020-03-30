@@ -46,7 +46,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
 
     if (liveState.visible) {
         PlotSourceConfig sourceConfig;
-        sourceConfig.count = data.size() / 2;
+        sourceConfig.count = liveState.fftLen / 2;
         sourceConfig.xMin = 0.0;
         sourceConfig.xMax = liveState.sampleRate / 2.0;
         sourceConfig.color = liveState.uniqueCol;
@@ -68,7 +68,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
         }
         auto& savedData = state.filteredMagFftInput;
         PlotSourceConfig sourceConfig;
-        sourceConfig.count = savedData.size() / 2;
+        sourceConfig.count = state.fftLen / 2;
         sourceConfig.xMin = 0.0;
         sourceConfig.xMax = state.sampleRate / 2.0;
         sourceConfig.color = state.uniqueCol;

@@ -17,6 +17,12 @@
 
 #include "audiohandler.h"
 
+void clearStateQueue(std::queue<State*>& q)
+{
+    std::queue<State*> empty;
+    std::swap(q, empty);
+}
+
 std::string getStr(const FunctionGeneratorType& gen) noexcept
 {
     switch (gen) {
@@ -55,6 +61,23 @@ AudioHandler::AudioHandler() noexcept
         SDL2WRAP_ASSERT(false);
     }
     driverChosen = true;
+
+    // populate state pool
+    // due to the nature for fftw, this might take a while...
+    for (auto rate : AudioConfig::getPossibleAnalysisSampleRates()) {
+        StatePoolArray pool;
+        for (auto& state : pool) {
+            state = new State(rate);
+        }
+        statePool[rate] = pool;
+    }
+
+    resetStates();
+
+    // spin up data processing thread
+    dataProcessor = std::thread([this]() {
+        this->processingWorker();
+    });
 }
 
 AudioHandler::~AudioHandler() noexcept
@@ -62,6 +85,17 @@ AudioHandler::~AudioHandler() noexcept
     if (running) {
         s2::Audio::closeDevice(captureId);
         s2::Audio::closeDevice(playbackId);
+    }
+
+    // destroy thread
+    terminateThreads = true;
+    dataProcessor.join();
+
+    // clean up states
+    for (auto& pair : statePool) {
+        for (auto state : pair.second) {
+            delete state;
+        }
     }
 }
 
@@ -181,6 +215,7 @@ void AudioHandler::update() noexcept
             ImGui::PushID(static_cast<int>(rate));
             if (ImGui::Selectable(config.sampleCountToString(rate).c_str(), rate == config.analysisSamples)) {
                 config.analysisSamples = rate;
+                resetStates();
             }
             ImGui::PopID();
         }
@@ -217,9 +252,6 @@ void AudioHandler::startAudio()
     }
 
     running = false;
-
-    wipReferenceSignal.reserve(config.analysisSamples);
-    wipInputSignal.reserve(config.analysisSamples);
 
     s2::Audio::Spec want;
     SDL_zero(want);
@@ -273,21 +305,36 @@ void AudioHandler::captureCallback(Uint8* stream, int len)
 {
     auto count = static_cast<size_t>(len) / sizeof(Sint32);
     auto* ptr = reinterpret_cast<Sint32*>(stream);
+    if (captureState == nullptr) {
+        if (unusedStates.empty()) {
+            return;
+        }
+
+        captureState = unusedStates.front();
+        unusedStates.pop();
+    }
 
     for (auto i = 0ull; i + 1 < count; i += 2) {
         auto reference = ptr[i + config.referenceChannel];
         auto input = ptr[i + config.inputChannel];
         auto dReference = static_cast<double>(reference) / static_cast<double>(SDL_MAX_SINT32);
         auto dInput = static_cast<double>(input) / static_cast<double>(SDL_MAX_SINT32);
-        wipReferenceSignal.push_back(dReference);
-        wipInputSignal.push_back(dInput);
 
-        if (wipReferenceSignal.size() >= config.analysisSamples) {
-            currentReferenceSignal = std::move(wipReferenceSignal);
-            currentInputSignal = std::move(wipInputSignal);
-            wipReferenceSignal.reserve(config.analysisSamples);
-            wipInputSignal.reserve(config.analysisSamples);
+        captureState->accessData().reference[sampleCount] = dReference;
+        captureState->accessData().input[sampleCount] = dInput;
+        ++sampleCount;
+
+        if (sampleCount >= config.analysisSamples) {
             ++frameCount;
+            sampleCount = 0;
+            processStates.push(captureState);
+            captureState = nullptr;
+
+            if (unusedStates.empty()) {
+                return;
+            }
+            captureState = unusedStates.front();
+            unusedStates.pop();
         }
     }
 }
@@ -302,17 +349,50 @@ void AudioHandler::captureCallbackStatic(void* userdata, Uint8* stream, int len)
     reinterpret_cast<AudioHandler*>(userdata)->captureCallback(stream, len);
 }
 
+void AudioHandler::resetStates() noexcept
+{
+    // halt the audio world
+    processingLock.lock();
+    s2::Audio::lockDevice(captureId);
+    // clear them all
+    doneState = nullptr;
+    captureState = nullptr;
+    clearStateQueue(unusedStates);
+    clearStateQueue(processStates);
+
+    // fill in the proper ones
+    for (auto& state : statePool[config.analysisSamples]) {
+        unusedStates.push(state);
+    }
+
+    // can run again
+    s2::Audio::unlockDevice(captureId);
+    processingLock.unlock();
+}
+
 size_t AudioHandler::getFrameCount() const noexcept
 {
     return frameCount;
 }
 
-void AudioHandler::getFrame(std::vector<double>& reference, std::vector<double>& input) const noexcept
+StateData AudioHandler::getStateData() const noexcept
 {
+    StateData copy = {};
+    if (doneState == nullptr) {
+        return copy;
+    }
+
+    processingLock.lock();
     s2::Audio::lockDevice(captureId);
-    reference = currentReferenceSignal;
-    input = currentInputSignal;
+
+    copy = doneState->getData();
+
     s2::Audio::unlockDevice(captureId);
+    processingLock.unlock();
+
+    copy.sampleRate = static_cast<double>(config.sampleRate);
+    copy.fftDuration = config.samplesToSeconds(config.analysisSamples);
+    return copy;
 }
 
 const AudioConfig& AudioHandler::getConfig() const noexcept
@@ -320,13 +400,43 @@ const AudioConfig& AudioHandler::getConfig() const noexcept
     return config;
 }
 
-std::vector<size_t> AudioConfig::getPossibleAnalysisSampleRates() const noexcept
+void AudioHandler::processingWorker() noexcept
+{
+    using namespace std::chrono;
+    while (!terminateThreads) {
+        std::this_thread::sleep_for(5ms);
+        State* current = nullptr;
+        s2::Audio::lockDevice(captureId);
+        if (!processStates.empty()) {
+            current = processStates.front();
+            processStates.pop();
+        }
+        s2::Audio::unlockDevice(captureId);
+
+        if (current == nullptr) {
+            continue;
+        }
+
+        // this takes time, and is the reason we are a thread
+        current->calc();
+
+        // advance the doneState
+        processingLock.lock();
+        if (doneState != nullptr) {
+            s2::Audio::lockDevice(captureId);
+            unusedStates.push(doneState);
+            s2::Audio::unlockDevice(captureId);
+        }
+        doneState = current;
+        processingLock.unlock();
+    }
+}
+
+std::vector<size_t> AudioConfig::getPossibleAnalysisSampleRates() noexcept
 {
     std::vector<size_t> rates;
-    for (size_t i = 1; i < static_cast<size_t>(sampleRate) * 4ul; i <<= 1) {
-        if (i >= sampleRate / 15) {
-            rates.push_back(i);
-        }
+    for (size_t i = LAA_MIN_FFT_LENGTH; i < LAA_MAX_FFT_LENGTH; i <<= 1u) {
+        rates.push_back(i);
     }
 
     return rates;

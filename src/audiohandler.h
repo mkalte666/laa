@@ -21,6 +21,12 @@
 #include "dsp/pinknoisegenerator.h"
 #include "dsp/sinegenerator.h"
 #include "shared.h"
+#include "state.h"
+
+#include <map>
+#include <mutex>
+#include <queue>
+#include <thread>
 
 struct AudioConfig {
     std::string driver = "";
@@ -32,7 +38,7 @@ struct AudioConfig {
     size_t samples = 4096;
     size_t analysisSamples = 32768;
 
-    std::vector<size_t> getPossibleAnalysisSampleRates() const noexcept;
+    [[nodiscard]] static std::vector<size_t> getPossibleAnalysisSampleRates() noexcept;
     double samplesToSeconds(size_t count) const noexcept;
     std::string sampleCountToString(size_t count) const noexcept;
 };
@@ -49,15 +55,15 @@ class AudioHandler {
 public:
     AudioHandler() noexcept;
     AudioHandler(const AudioHandler&) = delete;
-    AudioHandler(AudioHandler&&) = default;
+    AudioHandler(AudioHandler&&) = delete;
     AudioHandler& operator=(const AudioHandler&) = delete;
-    AudioHandler& operator=(AudioHandler&&) = default;
+    AudioHandler& operator=(AudioHandler&&) = delete;
     ~AudioHandler() noexcept;
 
     void update() noexcept;
 
     size_t getFrameCount() const noexcept;
-    void getFrame(std::vector<double>& reference, std::vector<double>& input) const noexcept;
+    StateData getStateData() const noexcept;
 
     const AudioConfig& getConfig() const noexcept;
 
@@ -69,6 +75,7 @@ private:
     void captureCallback(Uint8* stream, int len);
     static void playbackCallbackStatic(void* userdata, Uint8* stream, int len);
     static void captureCallbackStatic(void* userdata, Uint8* stream, int len);
+    void resetStates() noexcept;
 
     AudioConfig config = {};
     bool driverChosen = false;
@@ -80,10 +87,17 @@ private:
     SineGenerator sineGenerator = {};
     FunctionGeneratorType functionGeneratorType = FunctionGeneratorType::Silence;
 
-    std::vector<double> currentReferenceSignal = {};
-    std::vector<double> currentInputSignal = {};
-    std::vector<double> wipReferenceSignal = {};
-    std::vector<double> wipInputSignal = {};
+    void processingWorker() noexcept;
+    using StatePoolArray = std::array<State*, 5>;
+    std::map<size_t, StatePoolArray> statePool;
+    std::thread dataProcessor;
+    bool terminateThreads = false;
+    mutable std::mutex processingLock;
+    std::queue<State*> unusedStates;
+    size_t sampleCount = 0;
+    State* captureState = nullptr;
+    std::queue<State*> processStates;
+    State* doneState = nullptr;
     size_t frameCount = 0;
 };
 

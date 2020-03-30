@@ -18,10 +18,9 @@
 #ifndef laa_state_h
 #define laa_state_h
 
-#include "audiohandler.h"
 #include "dsp/avg.h"
-#include "dsp/fft.h"
 #include "dsp/windows.h"
+#include "shared.h"
 
 static constexpr size_t LAA_MAX_FFT_LENGTH = 65536;
 static constexpr size_t LAA_MIN_FFT_LENGTH = 512;
@@ -48,7 +47,7 @@ struct StateData {
     // this is here for convenience, to be filled in in various places
     ImColor uniqueCol = 0xFFFFFFFF;
     std::string name = "";
-    bool active = false;
+    bool active = true;
     bool visible = true;
     double fftDuration = 0.0;
     double sampleRate = 0.0;

@@ -42,7 +42,7 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
     BeginPlot(plotConfig);
     if (liveState.visible) {
         PlotSourceConfig sourceConfig;
-        sourceConfig.count = data.size();
+        sourceConfig.count = liveState.fftLen;
         sourceConfig.xMin = 0.0 - liveState.fftDuration;
         sourceConfig.xMax = 0.0;
         sourceConfig.color = liveState.uniqueCol;
@@ -59,7 +59,7 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
         }
 
         PlotSourceConfig sourceConfig;
-        sourceConfig.count = state.input.size();
+        sourceConfig.count = state.fftLen;
         sourceConfig.xMin = 0.0 - state.fftDuration;
         sourceConfig.xMax = 0.0;
         sourceConfig.color = state.uniqueCol;

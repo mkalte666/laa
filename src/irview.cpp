@@ -44,7 +44,7 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.xMax = liveState.fftDuration;
         sourceConfig.color = liveState.uniqueCol;
         sourceConfig.active = liveState.active;
-        sourceConfig.count = liveState.impulseResponse.size();
+        sourceConfig.count = liveState.fftLen;
         Plot(
             sourceConfig,
             [&liveState](size_t idx) {
@@ -58,7 +58,7 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         }
 
         PlotSourceConfig sourceConfig;
-        sourceConfig.count = state.impulseResponse.size();
+        sourceConfig.count = state.fftLen;
         sourceConfig.xMin = 0.0;
         sourceConfig.xMax = state.fftDuration;
         sourceConfig.color = state.uniqueCol;
