@@ -23,7 +23,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
     ImGui::Begin((idHint + "Mag").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-    auto& data = liveState.avgPolarFftInput;
+    auto& data = liveState.filteredMagFftInput;
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
@@ -48,7 +48,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
         PlotSourceConfig sourceConfig;
         sourceConfig.count = data.size() / 2;
         sourceConfig.xMin = 0.0;
-        sourceConfig.xMax = static_cast<double>(liveState.config.sampleRate / 2);
+        sourceConfig.xMax = liveState.sampleRate / 2.0;
         sourceConfig.color = liveState.uniqueCol;
         sourceConfig.active = liveState.active;
         Plot(
@@ -58,7 +58,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
                     return 0.0;
                 }
 
-                return data[idx].real();
+                return data[idx];
             });
     }
 
@@ -66,11 +66,11 @@ void MagView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-        auto& savedData = state.polarFftInput;
+        auto& savedData = state.filteredMagFftInput;
         PlotSourceConfig sourceConfig;
         sourceConfig.count = savedData.size() / 2;
         sourceConfig.xMin = 0.0;
-        sourceConfig.xMax = static_cast<double>(state.config.sampleRate / 2);
+        sourceConfig.xMax = state.sampleRate / 2.0;
         sourceConfig.color = state.uniqueCol;
         sourceConfig.active = state.active;
         Plot(
@@ -78,7 +78,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
                 if (idx >= savedData.size()) {
                     return 0.0;
                 }
-                return savedData[idx].real();
+                return savedData[idx];
             });
     }
 

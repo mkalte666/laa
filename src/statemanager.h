@@ -18,44 +18,9 @@
 #ifndef laa_statemanager_h
 #define laa_statemanager_h
 
-#include "audiohandler.h"
-#include "dsp/avg.h"
-#include "dsp/fft.h"
-#include "dsp/windows.h"
+#include "state.h"
 
 #include <list>
-
-struct State {
-    AudioConfig config = {};
-    ImColor uniqueCol = 0xFFFFFFFF;
-    bool visible = true;
-    bool active = false;
-    std::string name = "Capture";
-
-    // raw values
-    RealVec reference = {};
-    RealVec input = {};
-    // filtered raw values
-    RealVec windowedReference = {};
-    RealVec windowedInput = {};
-
-    // operations on the direct fft
-    ComplexVec fftReference = {};
-    ComplexVec fftInput = {};
-    ComplexVec polarFftInput = {};
-    ComplexVec frequencyResponse = {};
-    ComplexVec impulseResponse = {};
-
-    // operations on the averged fft
-    size_t avgCount = 4;
-    std::vector<ComplexVec> pastFftReference = {};
-    std::vector<ComplexVec> pastFftInput = {};
-    ComplexVec avgFftReference = {};
-    ComplexVec avgFftInput = {};
-    ComplexVec avgPolarFftInput = {};
-    ComplexVec avgFrequencyResponse = {};
-    ComplexVec avgImpluseResponse = {};
-};
 
 ImColor randColor();
 
@@ -65,17 +30,16 @@ public:
     ~StateManager() noexcept = default;
     void update(AudioHandler& audioHandler);
 
-    const State& getLive() const noexcept;
+    [[nodiscard]] const StateData& getLive() const noexcept;
 
-    const std::list<State>& getSaved() const noexcept;
+    [[nodiscard]] const std::list<StateData>& getSaved() const noexcept;
 
 private:
     void deactivateAll();
-    void resetAvg();
     size_t lastFrame = 0;
-    State liveState = {};
+    StateData liveState = {};
 
-    std::list<State> saved;
+    std::list<StateData> saved;
 };
 
 #endif //laa_statemanager_h

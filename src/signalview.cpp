@@ -33,7 +33,7 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
     plotConfig.yAxisConfig.gridInterval = 0.25;
 
     if (min == 0.0F) {
-        min = static_cast<float>(0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples));
+        min = static_cast<float>(0.0 - liveState.fftDuration);
     }
     plotConfig.xAxisConfig.min = static_cast<double>(min);
     plotConfig.xAxisConfig.max = 0.0;
@@ -43,7 +43,7 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
     if (liveState.visible) {
         PlotSourceConfig sourceConfig;
         sourceConfig.count = data.size();
-        sourceConfig.xMin = 0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples);
+        sourceConfig.xMin = 0.0 - liveState.fftDuration;
         sourceConfig.xMax = 0.0;
         sourceConfig.color = liveState.uniqueCol;
         sourceConfig.active = liveState.active;
@@ -60,7 +60,7 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
 
         PlotSourceConfig sourceConfig;
         sourceConfig.count = state.input.size();
-        sourceConfig.xMin = 0.0 - state.config.samplesToSeconds(liveState.config.analysisSamples);
+        sourceConfig.xMin = 0.0 - state.fftDuration;
         sourceConfig.xMax = 0.0;
         sourceConfig.color = state.uniqueCol;
         sourceConfig.active = state.active;
@@ -75,7 +75,7 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
 
     EndPlot();
 
-    ImGui::SliderFloat("Range", &min, static_cast<float>(0.0 - liveState.config.samplesToSeconds(liveState.config.analysisSamples)), 0.0F);
+    ImGui::SliderFloat("Range", &min, static_cast<float>(0.0 - liveState.fftDuration), 0.0F);
 
     ImGui::End();
 }

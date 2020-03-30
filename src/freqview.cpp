@@ -21,7 +21,7 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
     ImGui::Begin((idHint + "Freq").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-    auto& data = liveState.avgFrequencyResponse;
+    auto& data = liveState.frequencyResponse;
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
@@ -44,7 +44,7 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
         PlotSourceConfig sourceConfig;
         sourceConfig.count = data.size() / 2;
         sourceConfig.xMin = 0.0;
-        sourceConfig.xMax = static_cast<double>(liveState.config.sampleRate / 2);
+        sourceConfig.xMax = liveState.sampleRate / 2.0;
         sourceConfig.color = liveState.uniqueCol;
         sourceConfig.active = liveState.active;
         Plot(
@@ -54,7 +54,7 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
                     return 0.0;
                 }
 
-                return std::abs(data[idx]);
+                return mag(data[idx]);
             });
     }
 
@@ -62,11 +62,11 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-        auto& savedData = state.avgFrequencyResponse;
+        auto& savedData = state.frequencyResponse;
         PlotSourceConfig sourceConfig;
         sourceConfig.count = savedData.size() / 2;
         sourceConfig.xMin = 0.0;
-        sourceConfig.xMax = static_cast<double>(state.config.sampleRate / 2);
+        sourceConfig.xMax = state.sampleRate / 2;
         sourceConfig.color = state.uniqueCol;
         sourceConfig.active = state.active;
         Plot(
@@ -74,7 +74,7 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
                 if (idx >= savedData.size()) {
                     return 0.0;
                 }
-                return std::abs(savedData[idx]);
+                return mag(savedData[idx]);
             });
     }
 

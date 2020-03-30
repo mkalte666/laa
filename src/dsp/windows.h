@@ -21,23 +21,23 @@
 #include <cmath>
 #include <vector>
 
-template <class T>
-inline void hamming(std::vector<T>& x)
+template <class T, class Talloc = std::allocator<T>>
+inline void hamming(std::vector<T, Talloc>& out, const std::vector<T, Talloc>& in)
 {
-    auto M = static_cast<double>(x.size() - 1);
-    for (size_t i = 0; i < x.size(); i++) {
+    auto M = static_cast<double>(in.size() - 1);
+    for (size_t i = 0; i < in.size(); i++) {
         auto di = static_cast<double>(i);
-        x[i] *= 0.54 - 0.46 * std::cos(2.0 * M_PI * di / M);
+        out[i] = in[i] * (0.54 - 0.46 * std::cos(2.0 * M_PI * di / M));
     }
 }
 
-template <class T>
-inline void blackman(std::vector<T>& x)
+template <class T, class Talloc = std::allocator<T>>
+inline void blackman(std::vector<T, Talloc>& out, const std::vector<T, Talloc>& in)
 {
-    auto M = static_cast<double>(x.size() - 1);
-    for (size_t i = 0; i < x.size(); i++) {
+    auto M = static_cast<double>(in.size() - 1);
+    for (size_t i = 0; i < in.size(); i++) {
         auto di = static_cast<double>(i);
-        x[i] *= 0.42 - 0.5 * std::cos(2.0 * M_PI * di / M) + 0.08 * std::cos(4.0 * M_PI * di / M);
+        out[i] = in[i] * (0.42 - 0.5 * std::cos(2.0 * M_PI * di / M) + 0.08 * std::cos(4.0 * M_PI * di / M));
     }
 }
 

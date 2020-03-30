@@ -32,9 +32,10 @@
 #include <GL/gl3w.h>
 
 #include <string>
-#include <complex>
 #include <vector>
 #include <random>
+
+#include "dsp/fft.h"
 
 namespace s2 = sdl2wrap;
 

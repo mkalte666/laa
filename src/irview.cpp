@@ -41,14 +41,14 @@ void IrView::update(StateManager& stateManager, std::string idHint)
     if (liveState.visible) {
         PlotSourceConfig sourceConfig;
         sourceConfig.xMin = 0.0;
-        sourceConfig.xMax = liveState.config.samplesToSeconds(liveState.config.analysisSamples);
+        sourceConfig.xMax = liveState.fftDuration;
         sourceConfig.color = liveState.uniqueCol;
         sourceConfig.active = liveState.active;
         sourceConfig.count = liveState.impulseResponse.size();
         Plot(
             sourceConfig,
             [&liveState](size_t idx) {
-                return liveState.impulseResponse[idx].real();
+                return liveState.impulseResponse[idx];
             });
     }
 
@@ -60,18 +60,18 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         PlotSourceConfig sourceConfig;
         sourceConfig.count = state.impulseResponse.size();
         sourceConfig.xMin = 0.0;
-        sourceConfig.xMax = state.config.samplesToSeconds(state.config.analysisSamples);
+        sourceConfig.xMax = state.fftDuration;
         sourceConfig.color = state.uniqueCol;
         sourceConfig.active = state.active;
         Plot(
             sourceConfig, [&state](size_t idx) {
-                return state.impulseResponse[idx].real();
+                return state.impulseResponse[idx];
             });
     }
 
     EndPlot();
 
-    ImGui::SliderFloat("Range", &range, 0.0F, static_cast<float>(liveState.config.samplesToSeconds(liveState.config.analysisSamples)));
+    ImGui::SliderFloat("Range", &range, 0.0F, static_cast<float>(liveState.fftDuration));
 
     ImGui::End();
 }
