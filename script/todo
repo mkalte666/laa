@@ -1,0 +1,9 @@
+#!/bin/bash
+
+export TODO_DIR="$(dirname $0)/../todo"
+export TODO_FILE="$TODO_DIR/todo.txt"
+export DONE_FILE="$TODO_DIR/done.txt"
+export REPORT_FILE="$TODO_DIR/report.txt"
+export TMP_FILE="/tmp/todo.tmp"
+export TODOTXT_DEFAULT_ACTION=ls
+todo.sh -d $TODO_DIR/config "$@"
