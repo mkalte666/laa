@@ -19,6 +19,7 @@
 #include "viewmanager.h"
 #include <ctime>
 #include <random>
+#include <memory>
 
 int main(int, char**)
 {
@@ -55,7 +56,38 @@ int main(int, char**)
     ImGui_ImplOpenGL3_Init("#version 100");
 
     bool running = true;
-    ViewManager manager;
+
+    // view manager takes quite a while, so show some "wait a second" text
+    // its in a loop so we actually get this out after the window is created and before we init
+    // this is also the reason for the delay
+    s2::Timer::delay(200);
+    for (int i = 0; i < 10; i++){
+        s2::Event e;
+        while (s2::Input::pollEvent(e)) {
+            if (ImGui_ImplSDL2_ProcessEvent(&e)) {
+                continue;
+            }
+            if (e.type == s2::EventType::Quit) {
+                running = false;
+            }
+        }
+        glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame(window.get());
+        ImGui::NewFrame();
+        ImGui::Begin("Waiting info window", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Text("Setting up. This might take a while.");
+        ImGui::Text("Im sorry for this, but everything should be alot smoother as soon as we get going!");
+        ImGui::End();
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        s2::Video::GL::swap(window);
+    }
+
+    // the blob above is there cause of this one
+    auto manager = std::make_unique<ViewManager>();
 
     while (running) {
         s2::Event e;
@@ -76,11 +108,11 @@ int main(int, char**)
         ImGui::NewFrame();
         int w, h;
         s2::Video::GL::getDrawableSize(window, w, h);
-        manager.update(ImVec2(static_cast<float>(w), static_cast<float>(h)));
+        manager->update(ImVec2(static_cast<float>(w), static_cast<float>(h)));
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        SDL_GL_SwapWindow(window.get());
+        s2::Video::GL::swap(window);
     }
 
     return 0;
