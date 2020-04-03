@@ -18,6 +18,8 @@
 #ifndef laa_shared_h
 #define laa_shared_h
 
+#include <cstdio>
+
 #define SDL2WRAP_STATIC
 #include <sdl2wrap/sdl2stl.h>
 

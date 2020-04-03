@@ -65,7 +65,7 @@ add_executable(laatool
         src/phaseview.cpp
         src/phaseview.h src/freqview.cpp src/freqview.h src/state.cpp src/state.h)
 
-
+enableStrictOptions(laatool)
 
 if(MINGW)
     add_definitions(-DNOMINMAX)
@@ -74,5 +74,4 @@ if(MINGW)
     message("Mingw builds are buggy")
 else()
     target_link_libraries(laatool PRIVATE imgui gl3w sdl2wrap::sdl2 OpenGL::GL imguiplot fftw3 m pthread)
-    enableStrictOptions(laatool)
     endif()

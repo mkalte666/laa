@@ -165,7 +165,7 @@ void AudioHandler::update() noexcept
         ImGui::Text("Driver: %s", config.driver.c_str());
         ImGui::Text("Playback: %s", config.playbackName.c_str());
         ImGui::Text("Capture: %s", config.captureName.c_str());
-        ImGui::Text("Sample Rate: %zu", config.sampleRate);
+        ImGui::Text("Sample Rate: %d", static_cast<int>(config.sampleRate));
     }
 
     if (!running) {

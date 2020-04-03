@@ -117,3 +117,4 @@ _deps
 *.png
 .vs/
 CMakeSettings.json
+windows/build
