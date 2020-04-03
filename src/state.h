@@ -70,10 +70,10 @@ public:
     StateData& accessData() noexcept;
 
 private:
-    StateData data;
-    fftw_plan fftInputPlan;
-    fftw_plan fftReferencePlan;
-    fftw_plan impulseResponsePlan;
+    StateData data = {};
+    fftw_plan fftInputPlan = {};
+    fftw_plan fftReferencePlan = {};
+    fftw_plan impulseResponsePlan = {};
 };
 
 #endif //laa_state_h

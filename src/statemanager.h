@@ -38,7 +38,7 @@ private:
     size_t lastFrame = 0;
     StateData liveState = {};
 
-    std::list<StateData> saved;
+    std::list<StateData> saved = {};
 };
 
 #endif //laa_statemanager_h

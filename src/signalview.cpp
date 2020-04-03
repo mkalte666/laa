@@ -32,9 +32,17 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
     plotConfig.yAxisConfig.max = 1.05;
     plotConfig.yAxisConfig.gridInterval = 0.25;
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+#endif
     if (min == 0.0F) {
         min = static_cast<float>(0.0 - liveState.fftDuration);
     }
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
     plotConfig.xAxisConfig.min = static_cast<double>(min);
     plotConfig.xAxisConfig.max = 0.0;
     plotConfig.xAxisConfig.gridInterval = 0.05;

@@ -55,7 +55,7 @@ void ViewManager::update(ImVec2 windowSize) noexcept
 
 void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View& view) noexcept
 {
-    std::string idHint = offset == 0.0F ? "one" : "two";
+    std::string idHint = offset > 0.0F ? "one" : "two";
     ImGui::PushID(idHint.c_str());
 
     // window selector

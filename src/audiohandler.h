@@ -89,14 +89,14 @@ private:
 
     void processingWorker() noexcept;
     using StatePoolArray = std::array<State*, 5>;
-    std::map<size_t, StatePoolArray> statePool;
-    std::thread dataProcessor;
+    std::map<size_t, StatePoolArray> statePool = {};
+    std::thread dataProcessor = {};
     bool terminateThreads = false;
-    mutable std::mutex processingLock;
-    std::queue<State*> unusedStates;
+    mutable std::mutex processingLock = {};
+    std::queue<State*> unusedStates = {};
     size_t sampleCount = 0;
     State* captureState = nullptr;
-    std::queue<State*> processStates;
+    std::queue<State*> processStates = {};
     State* doneState = nullptr;
     size_t frameCount = 0;
 };
