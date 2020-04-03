@@ -19,6 +19,7 @@
 
 State::State(size_t fftLen) noexcept
 {
+    data.uniqueCol = ImGui::GetColorU32(ImGuiCol_Text);
     data.fftLen = std::min(LAA_MAX_FFT_LENGTH, std::max(LAA_MIN_FFT_LENGTH, fftLen));
     data.input.resize(LAA_MAX_FFT_LENGTH);
     data.reference.resize(LAA_MAX_FFT_LENGTH);

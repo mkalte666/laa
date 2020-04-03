@@ -67,7 +67,6 @@ int main(int, char**)
     ImGui::CreateContext();
     ImGui_ImplSDL2_InitForOpenGL(window.get(), context.get());
     ImGui_ImplOpenGL3_Init(glsl_version);
-
     bool running = true;
 
     // view manager takes quite a while, so show some "wait a second" text
