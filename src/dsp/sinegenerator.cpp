@@ -32,9 +32,10 @@ double SineGenerator::getFrequency() const
 
 void SineGenerator::setFrequency(double f)
 {
-    if (f != 0.0) {
-        currentTime = (currentTime * freq) / f;
+    if (f < 0.00000001) {
+        return;
     }
+    currentTime = (currentTime * freq) / f;
     freq = f;
 }
 
