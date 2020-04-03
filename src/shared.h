@@ -38,6 +38,7 @@
 #include <random>
 
 #include "dsp/fft.h"
+#include "version.h"
 
 namespace s2 = sdl2wrap;
 

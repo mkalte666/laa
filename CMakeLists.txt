@@ -63,7 +63,7 @@ add_executable(laatool
         src/irview.cpp
         src/irview.h
         src/phaseview.cpp
-        src/phaseview.h src/freqview.cpp src/freqview.h src/state.cpp src/state.h)
+        src/phaseview.h src/freqview.cpp src/freqview.h src/state.cpp src/state.h src/version.h)
 
 enableStrictOptions(laatool)
 

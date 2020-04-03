@@ -16,6 +16,8 @@
  */
 
 #include "audiohandler.h"
+#include <filesystem>
+namespace fs = std::filesystem;
 
 void clearStateQueue(std::queue<State*>& q)
 {
@@ -62,6 +64,14 @@ AudioHandler::AudioHandler() noexcept
     }
     driverChosen = true;
 
+    // check if we have wisdom available
+    auto pWisdomPath = SDL_GetPrefPath("mkalte", "laa");
+    std::string wisdomPath = pWisdomPath;
+    SDL_free(pWisdomPath);
+    wisdomPath += "/fftwWisdom" + getVersionString() + ".fftw";
+    if (fs::exists(wisdomPath)) {
+        fftw_import_wisdom_from_filename(wisdomPath.c_str());
+    }
     // populate state pool
     // due to the nature for fftw, this might take a while...
     for (auto rate : AudioConfig::getPossibleAnalysisSampleRates()) {
@@ -71,6 +81,9 @@ AudioHandler::AudioHandler() noexcept
         }
         statePool[rate] = pool;
     }
+
+    // save wisdom
+    fftw_export_wisdom_to_filename(wisdomPath.c_str());
 
     resetStates();
 
