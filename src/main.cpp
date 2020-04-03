@@ -31,7 +31,7 @@ int main(int, char**)
         return -1;
     }
 
-#ifndef _WIN32
+#ifdef LAA_GL_ES_2
     s2::Video::GL::setAttribute(s2::GLattr::ContextFlags, 0);
     s2::Video::GL::setAttribute(s2::GLattr::ContextProfileMask, SDL_GL_CONTEXT_PROFILE_ES);
     s2::Video::GL::setAttribute(s2::GLattr::ContextMajorVersion, 2);

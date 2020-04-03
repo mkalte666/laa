@@ -23,18 +23,11 @@ ImColor randColor()
     static std::vector<ImColor> colors = {};
 
     if (colors.empty()) {
-        colors.emplace_back(255, 0, 0, 255);
-        colors.emplace_back(0, 255, 0, 255);
-        colors.emplace_back(0, 0, 255, 255);
-        colors.emplace_back(255, 0, 255, 255);
-        colors.emplace_back(0, 255, 255, 255);
-        colors.emplace_back(255, 255, 0, 255);
-        colors.emplace_back(125, 0, 0, 125);
-        colors.emplace_back(0, 125, 0, 125);
-        colors.emplace_back(0, 0, 125, 125);
-        colors.emplace_back(125, 0, 125, 125);
-        colors.emplace_back(0, 125, 125, 125);
-        colors.emplace_back(125, 125, 0, 125);
+        for (int i = 0; i < 15; i++) {
+            float f = static_cast<float>(i) / 15.0F;
+            float f2 = 1.0F - (0.3F * f);
+            colors.emplace_back(ImColor::HSV(f, f2, 1.0));
+        }
     }
 
     auto col = colors.back();
@@ -50,21 +43,28 @@ void StateManager::update(AudioHandler& audioHandler)
 
     ImGui::Begin("Snapshot Control", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
     ImGui::PushItemWidth(-1.0F);
-    if (ImGui::Button("Capture")) {
+
+#ifdef LAA_GL_ES_2
+    size_t maxCaptures = 4;
+#else
+    size_t maxCaptures = 10;
+#endif
+    if (saved.size() < maxCaptures && ImGui::Button("Capture")) {
         auto copy = liveState;
         copy.uniqueCol = randColor();
         copy.active = false;
+        copy.visible = liveVisible;
         saved.push_back(copy);
     }
 
-    if (ImGui::RadioButton("##liveRadio", liveState.active)) {
+    if (ImGui::RadioButton("##liveRadio", liveActive)) {
         deactivateAll();
-        liveState.active = true;
+        liveActive = true;
     }
     ImGui::SameLine();
     ImGui::ColorButton("Live Data", liveState.uniqueCol);
     ImGui::SameLine();
-    ImGui::Checkbox("Live Data##liveData", &liveState.visible);
+    ImGui::Checkbox("Live Data##liveData", &liveVisible);
 
     auto iter = saved.begin();
     int c = 0;
@@ -95,6 +95,9 @@ void StateManager::update(AudioHandler& audioHandler)
 
     ImGui::PopItemWidth();
     ImGui::End();
+
+    liveState.active = liveActive;
+    liveState.visible = liveVisible;
 }
 
 const StateData& StateManager::getLive() const noexcept
@@ -115,7 +118,7 @@ StateManager::StateManager() noexcept
 
 void StateManager::deactivateAll()
 {
-    liveState.active = false;
+    liveActive = false;
     for (auto& state : saved) {
         state.active = false;
     }

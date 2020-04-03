@@ -37,6 +37,8 @@ private:
     void deactivateAll();
     size_t lastFrame = 0;
     StateData liveState = {};
+    bool liveVisible = true;
+    bool liveActive = true;
 
     std::list<StateData> saved = {};
 };
