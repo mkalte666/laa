@@ -18,6 +18,7 @@
 #include "shared.h"
 #include "viewmanager.h"
 #include <ctime>
+#include <iostream>
 #include <memory>
 #include <random>
 
@@ -26,22 +27,34 @@ int main(int, char**)
     srand(static_cast<unsigned int>(time(nullptr)));
     auto res = s2::SDL2::init(s2::InitFlags::Audio | s2::InitFlags::Video);
     if (!res) {
+        std::cerr << "SDL Init  failed : " << res.getErrorMessage() << "\n";
         return -1;
     }
 
+#ifndef _WIN32
     s2::Video::GL::setAttribute(s2::GLattr::ContextFlags, 0);
     s2::Video::GL::setAttribute(s2::GLattr::ContextProfileMask, SDL_GL_CONTEXT_PROFILE_ES);
     s2::Video::GL::setAttribute(s2::GLattr::ContextMajorVersion, 2);
     s2::Video::GL::setAttribute(s2::GLattr::ContextMinorVersion, 0);
     s2::Video::GL::setAttribute(s2::GLattr::Doublebuffer, 1);
-
+    const char* glsl_version = "#version 100";
+#else
+    s2::Video::GL::setAttribute(s2::GLattr::ContextFlags, 0);
+    s2::Video::GL::setAttribute(s2::GLattr::ContextProfileMask, SDL_GL_CONTEXT_PROFILE_CORE);
+    s2::Video::GL::setAttribute(s2::GLattr::ContextMajorVersion, 3);
+    s2::Video::GL::setAttribute(s2::GLattr::ContextMinorVersion, 0);
+    s2::Video::GL::setAttribute(s2::GLattr::Doublebuffer, 1);
+    const char* glsl_version = "#version 130";
+#endif
     auto windowRes = s2::Video::Window::createCentered("LAA", 1024, 768, s2::WindowFlags::Resizable | s2::WindowFlags::Opengl);
     if (!windowRes) {
+        std::cerr << "OpenGL Window creation failed : " << windowRes.getErrorMessage() << "\n";
         return -1;
     }
     auto window = windowRes.extractValue();
     auto contextRes = s2::Video::GL::Context::create(window);
     if (!contextRes) {
+        std::cerr << "OpenGL Context creation failed : " << contextRes.getErrorMessage() << "\n";
         return -1;
     }
     auto context = contextRes.extractValue();
@@ -53,7 +66,7 @@ int main(int, char**)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui_ImplSDL2_InitForOpenGL(window.get(), context.get());
-    ImGui_ImplOpenGL3_Init("#version 100");
+    ImGui_ImplOpenGL3_Init(glsl_version);
 
     bool running = true;
 
