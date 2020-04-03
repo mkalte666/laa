@@ -45,6 +45,7 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.color = liveState.uniqueCol;
         sourceConfig.active = liveState.active;
         sourceConfig.count = liveState.fftLen;
+        sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::AbsMax;
         Plot(
             sourceConfig,
             [&liveState](size_t idx) {
@@ -63,6 +64,7 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.xMax = state.fftDuration;
         sourceConfig.color = state.uniqueCol;
         sourceConfig.active = state.active;
+        sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::AbsMax;
         Plot(
             sourceConfig, [&state](size_t idx) {
                 return state.impulseResponse[idx];

@@ -18,8 +18,8 @@
 #include "shared.h"
 #include "viewmanager.h"
 #include <ctime>
-#include <random>
 #include <memory>
+#include <random>
 
 int main(int, char**)
 {
@@ -61,7 +61,7 @@ int main(int, char**)
     // its in a loop so we actually get this out after the window is created and before we init
     // this is also the reason for the delay
     s2::Timer::delay(200);
-    for (int i = 0; i < 10; i++){
+    for (int i = 0; i < 10; i++) {
         s2::Event e;
         while (s2::Input::pollEvent(e)) {
             if (ImGui_ImplSDL2_ProcessEvent(&e)) {
