@@ -28,5 +28,6 @@ public:
 
 private:
     float range = 1.0F;
+    bool smoothing = false;
 };
 #endif //laa_irview_h

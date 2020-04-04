@@ -21,7 +21,7 @@ void IrView::update(StateManager& stateManager, std::string idHint)
     ImGui::Begin((idHint + "Mag").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-
+    const auto& data = choose(smoothing, liveState.smoothedImpulseResponse, liveState.impulseResponse);
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
     plotConfig.label = "IR View";
@@ -48,8 +48,8 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::AbsMax;
         Plot(
             sourceConfig,
-            [&liveState](size_t idx) {
-                return liveState.impulseResponse[idx];
+            [&data](size_t idx) {
+                return data[idx];
             });
     }
 
@@ -57,7 +57,7 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-
+        const auto& stateData = choose(smoothing, state.smoothedImpulseResponse, state.impulseResponse);
         PlotSourceConfig sourceConfig;
         sourceConfig.count = state.fftLen;
         sourceConfig.xMin = 0.0;
@@ -66,14 +66,14 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.active = state.active;
         sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::AbsMax;
         Plot(
-            sourceConfig, [&state](size_t idx) {
-                return state.impulseResponse[idx];
+            sourceConfig, [&stateData](size_t idx) {
+                return stateData[idx];
             });
     }
 
     EndPlot();
 
     ImGui::SliderFloat("Range", &range, 0.0F, static_cast<float>(liveState.fftDuration));
-
+    ImGui::Checkbox("Enable Smoothing", &smoothing);
     ImGui::End();
 }

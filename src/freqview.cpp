@@ -22,8 +22,7 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
     ImGui::Begin((idHint + "Freq").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-    ComplexVec data;
-    smooth(data, liveState.frequencyResponse);
+    const auto& data = choose(smoothing, liveState.smoothedFrequencyResponse, liveState.frequencyResponse);
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
@@ -65,7 +64,7 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-        auto& savedData = state.frequencyResponse;
+        auto& savedData = choose(smoothing, state.smoothedFrequencyResponse, state.frequencyResponse);
         PlotSourceConfig sourceConfig;
         sourceConfig.count = state.fftLen / 2;
         sourceConfig.xMin = 0.0;
@@ -89,6 +88,6 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
     min = std::clamp(min, 30.0F, 20000.0F);
     ImGui::SliderFloat("max##freq", &max, 30.0F, 20000.0F, "%.1f", 4.0F);
     max = std::clamp(max, min, 20000.0F);
-
+    ImGui::Checkbox("Enable Smoothing", &smoothing);
     ImGui::End();
 }

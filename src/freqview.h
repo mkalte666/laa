@@ -27,6 +27,7 @@ public:
 private:
     float min = 30.0F;
     float max = 20000.0F;
+    bool smoothing = true;
 };
 
 #endif //laa_freqview_h

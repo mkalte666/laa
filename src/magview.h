@@ -27,6 +27,7 @@ public:
 private:
     float min = 30.0F;
     float max = 20000.0F;
+    bool smoothing = false;
 };
 
 #endif //laa_magview_h

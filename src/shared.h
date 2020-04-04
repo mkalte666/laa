@@ -42,4 +42,24 @@
 
 namespace s2 = sdl2wrap;
 
+template <class T>
+T& choose(bool arg, T& trueArg, T& falseArg)
+{
+    if (arg) {
+        return trueArg;
+    }
+
+    return falseArg;
+}
+
+template <class T>
+const T& choose(bool arg, const T& trueArg, const T& falseArg)
+{
+    if (arg) {
+        return trueArg;
+    }
+
+    return falseArg;
+}
+
 #endif //laa_shared_h

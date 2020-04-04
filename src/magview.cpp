@@ -23,7 +23,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
     ImGui::Begin((idHint + "Mag").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-    auto& data = liveState.filteredFftInput;
+    auto& data = choose(smoothing, liveState.smoothedFilteredFftInput, liveState.filteredFftInput);
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
@@ -66,7 +66,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-        auto& savedData = state.filteredFftInput;
+        auto& savedData = choose(smoothing, state.smoothedFilteredFftInput, state.filteredFftInput);
         PlotSourceConfig sourceConfig;
         sourceConfig.count = state.fftLen / 2;
         sourceConfig.xMin = 0.0;
@@ -89,6 +89,6 @@ void MagView::update(StateManager& stateManager, std::string idHint)
     min = std::clamp(min, 30.0F, 20000.0F);
     ImGui::SliderFloat("max", &max, 30.0F, 20000.0F, "%.1f", 4.0F);
     max = std::clamp(max, min, 20000.0F);
-
+    ImGui::Checkbox("Enable Smoothing", &smoothing);
     ImGui::End();
 }

@@ -21,7 +21,7 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
     ImGui::Begin((idHint + "Phase").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-    auto& data = liveState.smoothedFrequencyResponse;
+    const auto& data = choose(smoothing, liveState.smoothedFrequencyResponse, liveState.frequencyResponse);
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
@@ -64,7 +64,7 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-        auto& savedData = state.smoothedFrequencyResponse;
+        const auto& savedData = choose(smoothing, state.smoothedFrequencyResponse, state.frequencyResponse);
         PlotSourceConfig sourceConfig;
         sourceConfig.count = state.fftLen / 2;
         sourceConfig.xMin = 0.0;
@@ -87,6 +87,6 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
     min = std::clamp(min, 30.0F, 20000.0F);
     ImGui::SliderFloat("max", &max, 30.0F, 20000.0F, "%.1f", 4.0F);
     max = std::clamp(max, min, 20000.0F);
-
+    ImGui::Checkbox("Enable Smoothing", &smoothing);
     ImGui::End();
 }
