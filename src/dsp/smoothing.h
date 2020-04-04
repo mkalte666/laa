@@ -18,6 +18,7 @@ void smooth(std::vector<T, Talloc>& out, const std::vector<T, Talloc>& in, size_
         maxLen = out.size();
     }
     for (size_t writeIndex = 0; writeIndex < maxLen; ++writeIndex) {
+        out[writeIndex] = 0.0;
         size_t readStart = writeIndex > 10 ? writeIndex - 10 : 0;
         size_t readEnd = writeIndex + 10;
         for (size_t readIndex = readStart; readIndex < readEnd && readIndex < maxLen; ++readIndex) {
