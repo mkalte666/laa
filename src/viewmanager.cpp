@@ -74,10 +74,10 @@ void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View& 
     if (ImGui::Button("Phase")) {
         view = View::Phase;
     }
-    if (ImGui::Button("Impulse Response")) {
+    if (ImGui::Button("IR")) {
         view = View::ImpulseResponse;
     }
-    if (ImGui::Button("Frequency Response")) {
+    if (ImGui::Button("FR")) {
         view = View::FrequencyResponse;
     }
     ImGui::PopItemWidth();

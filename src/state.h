@@ -36,10 +36,7 @@ struct StateData {
     // unfiltered fft
     ComplexVec fftInput = {};
     ComplexVec fftReference = {};
-    // here be things to be used by widgets
-    ComplexVec filteredFftInput = {};
-    ComplexVec filteredFftReference = {};
-    ComplexVec smoothedFilteredFftInput = {};
+    ComplexVec smoothedFftInput = {};
     ComplexVec frequencyResponse = {};
     ComplexVec smoothedFrequencyResponse = {};
     RealVec impulseResponse = {};
