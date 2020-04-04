@@ -195,6 +195,21 @@ void AudioHandler::update() noexcept
 
     ImGui::Separator();
 
+    int refChan = static_cast<int>(config.referenceChannel);
+    int inputChan = static_cast<int>(config.inputChannel);
+
+    ImGui::Text("Reference Channel");
+    ImGui::InputInt("##refChan", &refChan, 1, 1);
+    refChan = std::clamp(refChan, 0, 1);
+    ImGui::Text("Input Channel");
+    ImGui::InputInt("##inputChan", &inputChan, 1, 1);
+    inputChan = std::clamp(inputChan, 0, 1);
+
+    config.referenceChannel = static_cast<size_t>(refChan);
+    config.inputChannel = static_cast<size_t>(inputChan);
+
+    ImGui::Separator();
+
     ImGui::Text("Select Signal");
     if (ImGui::BeginCombo("##Select Signal", getStr(functionGeneratorType).c_str())) {
         if (ImGui::Selectable(getStr(FunctionGeneratorType::Silence).c_str(), functionGeneratorType == FunctionGeneratorType::Silence)) {
