@@ -16,12 +16,14 @@
  */
 
 #include "freqview.h"
+#include "dsp/smoothing.h"
 void FreqView::update(StateManager& stateManager, std::string idHint)
 {
     ImGui::Begin((idHint + "Freq").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-    auto& data = liveState.frequencyResponse;
+    ComplexVec data;
+    smooth(data, liveState.frequencyResponse);
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
@@ -47,6 +49,7 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.xMax = liveState.sampleRate / 2.0;
         sourceConfig.color = liveState.uniqueCol;
         sourceConfig.active = liveState.active;
+        sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::Mean;
         Plot(
             sourceConfig,
             [&data](size_t idx) {
@@ -69,6 +72,7 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.xMax = state.sampleRate / 2;
         sourceConfig.color = state.uniqueCol;
         sourceConfig.active = state.active;
+        sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::Mean;
         Plot(
             sourceConfig, [&savedData](size_t idx) {
                 if (idx >= savedData.size()) {

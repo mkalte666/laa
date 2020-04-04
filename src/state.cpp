@@ -16,6 +16,7 @@
  */
 
 #include "state.h"
+#include "dsp/smoothing.h"
 
 State::State(size_t fftLen) noexcept
 {
@@ -29,10 +30,11 @@ State::State(size_t fftLen) noexcept
     data.fftReference.resize(LAA_MAX_FFT_LENGTH);
     data.filteredFftInput.resize(LAA_MAX_FFT_LENGTH);
     data.filteredFftReference.resize(LAA_MAX_FFT_LENGTH);
-    data.filteredMagFftInput.resize(LAA_MAX_FFT_LENGTH);
-    data.phaseDelta.resize(LAA_MAX_FFT_LENGTH);
+    data.smoothedFilteredFftInput.resize(LAA_MAX_FFT_LENGTH);
     data.frequencyResponse.resize(LAA_MAX_FFT_LENGTH);
+    data.smoothedFrequencyResponse.resize(LAA_MAX_FFT_LENGTH);
     data.impulseResponse.resize(LAA_MAX_FFT_LENGTH);
+    data.smoothedImpulseResponse.resize(LAA_MAX_FFT_LENGTH);
 
     fftInputPlan = fftw_plan_dft_r2c_1d(static_cast<int>(data.fftLen), reinterpret_cast<double*>(data.windowedInput.data()), reinterpret_cast<fftw_complex*>(data.fftInput.data()), FFTW_MEASURE);
     fftReferencePlan = fftw_plan_dft_r2c_1d(static_cast<int>(data.fftLen), reinterpret_cast<double*>(data.windowedReference.data()), reinterpret_cast<fftw_complex*>(data.fftReference.data()), FFTW_MEASURE);
@@ -62,12 +64,8 @@ void State::calc() noexcept
         data.filteredFftReference[i] = data.fftReference[i];
     }
 
-    // make polar representations and frequency response
+    // make frequency response
     for (size_t i = 0; i < data.fftLen; i++) {
-        // polar and phase delta
-        data.filteredMagFftInput[i] = mag(data.filteredFftInput[i]);
-        data.phaseDelta[i] = phase(data.filteredFftInput[i]) - phase(data.filteredFftReference[i]);
-
         // frequency response XxH = Y => H = Y/X
         data.frequencyResponse[i] = data.filteredFftInput[i] / data.filteredFftReference[i];
     }
@@ -79,6 +77,11 @@ void State::calc() noexcept
     for (size_t i = 0; i < data.fftLen; ++i) {
         data.impulseResponse[i] /= dFftLen;
     }
+
+    // smooth out things
+    smooth(data.smoothedFilteredFftInput, data.filteredFftInput);
+    smooth(data.smoothedFrequencyResponse, data.frequencyResponse);
+    smooth(data.smoothedImpulseResponse, data.impulseResponse);
 }
 
 const StateData& State::getData() noexcept

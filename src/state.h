@@ -39,10 +39,11 @@ struct StateData {
     // here be things to be used by widgets
     ComplexVec filteredFftInput = {};
     ComplexVec filteredFftReference = {};
-    RealVec filteredMagFftInput = {};
-    RealVec phaseDelta = {};
+    ComplexVec smoothedFilteredFftInput = {};
     ComplexVec frequencyResponse = {};
+    ComplexVec smoothedFrequencyResponse = {};
     RealVec impulseResponse = {};
+    RealVec smoothedImpulseResponse = {};
 
     // this is here for convenience, to be filled in in various places
     ImColor uniqueCol = 0xFFFFFFFF;

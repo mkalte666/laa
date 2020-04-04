@@ -21,7 +21,7 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
     ImGui::Begin((idHint + "Phase").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-    auto& data = liveState.phaseDelta;
+    auto& data = liveState.smoothedFrequencyResponse;
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
@@ -48,6 +48,7 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.xMax = liveState.sampleRate / 2.0;
         sourceConfig.color = liveState.uniqueCol;
         sourceConfig.active = liveState.active;
+        sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::AbsMax;
         Plot(
             sourceConfig,
             [&data](size_t idx) {
@@ -55,7 +56,7 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
                     return 0.0;
                 }
 
-                return data[idx];
+                return phase(data[idx]);
             });
     }
 
@@ -63,7 +64,7 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-        auto& savedData = state.phaseDelta;
+        auto& savedData = state.smoothedFrequencyResponse;
         PlotSourceConfig sourceConfig;
         sourceConfig.count = state.fftLen / 2;
         sourceConfig.xMin = 0.0;
@@ -75,7 +76,7 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
                 if (idx >= savedData.size()) {
                     return 0.0;
                 }
-                return savedData[idx];
+                return phase(savedData[idx]);
             });
     }
 
