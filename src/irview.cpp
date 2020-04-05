@@ -27,6 +27,8 @@ void IrView::update(StateManager& stateManager, std::string idHint)
 
     const auto& liveState = stateManager.getLive();
     const auto& data = choose(smoothing, liveState.smoothedImpulseResponse, liveState.impulseResponse);
+    // make sure range doesn't clip
+    range = std::clamp(range, 0.0, liveState.fftDuration);
 
     PlotConfig plotConfig;
     plotConfig.label = "IR View";
@@ -36,7 +38,7 @@ void IrView::update(StateManager& stateManager, std::string idHint)
     plotConfig.yAxisConfig.gridInterval = 0.1;
 
     plotConfig.xAxisConfig.min = -0.05F;
-    plotConfig.xAxisConfig.max = static_cast<float>(range);
+    plotConfig.xAxisConfig.max = range;
     plotConfig.xAxisConfig.gridInterval = 0.05;
     if (range < 0.1) {
         plotConfig.xAxisConfig.gridInterval = 0.01;
@@ -98,7 +100,9 @@ void IrView::update(StateManager& stateManager, std::string idHint)
 
     EndPlot();
 
-    ImGui::SliderFloat("Range", &range, 0.0F, static_cast<float>(liveState.fftDuration));
+    float fRange = static_cast<float>(range);
+    ImGui::SliderFloat("Range", &fRange, 0.0F, static_cast<float>(liveState.fftDuration), "%.3f", 5.0F);
+    range = static_cast<double>(fRange);
     ImGui::Checkbox("Enable Smoothing", &smoothing);
 
     // now, marker selection

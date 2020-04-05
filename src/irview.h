@@ -34,7 +34,7 @@ public:
 
 private:
     void addMarker(const StateData& state, const PlotClickInfo& info) noexcept;
-    float range = 1.0F;
+    double range = 1.0F;
     bool smoothing = false;
 
     std::list<IrMarker> markers = {};

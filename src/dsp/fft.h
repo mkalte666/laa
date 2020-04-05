@@ -58,6 +58,8 @@ inline double imag(const Complex& c)
 #define EPSILON 0.000001
 inline double phase(const Complex& c)
 {
+    return carg(c);
+    /*
     double preAtan = 0.0;
     if (std::abs(real(c)) < 0.01) {
         return 0.0;
@@ -79,6 +81,7 @@ inline double phase(const Complex& c)
     }
 
     return p;
+     */
 }
 
 inline double mag(const Complex& c)
