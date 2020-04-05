@@ -22,12 +22,23 @@
 #include "dsp/fft.h"
 #include "statemanager.h"
 
+struct IrMarker {
+    PlotClickInfo clickInfo = {};
+    ImColor color = {};
+    bool isRef = false;
+};
+
 class IrView {
 public:
     void update(StateManager& stateManager, std::string idHint);
 
 private:
+    void addMarker(const StateData& state, const PlotClickInfo& info) noexcept;
     float range = 1.0F;
     bool smoothing = false;
+
+    std::list<IrMarker> markers = {};
+    double refValue = 0.0;
+    void clearRef() noexcept;
 };
 #endif //laa_irview_h

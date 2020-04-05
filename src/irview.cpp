@@ -19,13 +19,18 @@
 void IrView::update(StateManager& stateManager, std::string idHint)
 {
     ImGui::Begin((idHint + "Mag").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    auto size = ImGui::GetWindowContentRegionMax();
+
+    // begin with the plot
+    ImGui::Columns(2);
+    ImGui::SetColumnWidth(-1, size.x * 0.75F);
 
     const auto& liveState = stateManager.getLive();
     const auto& data = choose(smoothing, liveState.smoothedImpulseResponse, liveState.impulseResponse);
-    auto size = ImGui::GetWindowContentRegionMax();
+
     PlotConfig plotConfig;
     plotConfig.label = "IR View";
-    plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.8F);
+    plotConfig.size = ImVec2(size.x * 0.7F, size.y * 0.8F);
     plotConfig.yAxisConfig.min = -0.51;
     plotConfig.yAxisConfig.max = 0.51;
     plotConfig.yAxisConfig.gridInterval = 0.1;
@@ -46,11 +51,14 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.active = liveState.active;
         sourceConfig.count = liveState.fftLen;
         sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::AbsMax;
-        Plot(
+        auto clicked = Plot(
             sourceConfig,
             [&data](size_t idx) {
                 return data[idx];
             });
+        if (clicked) {
+            addMarker(liveState, clicked);
+        }
     }
 
     for (auto& state : stateManager.getSaved()) {
@@ -65,15 +73,83 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.color = state.uniqueCol;
         sourceConfig.active = state.active;
         sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::AbsMax;
-        Plot(
+        auto clicked = Plot(
             sourceConfig, [&stateData](size_t idx) {
                 return stateData[idx];
             });
+        if (clicked) {
+            addMarker(state, clicked);
+        }
+    }
+
+    // draw the markers
+    PlotMarkerConfig markerConfig = {};
+    markerConfig.drawYLine = true;
+    markerConfig.enableCustomLabel = true;
+
+    for (const auto& marker : markers) {
+        markerConfig.color = marker.color;
+        markerConfig.customLabel = std::to_string(marker.clickInfo.x - refValue);
+        if (marker.isRef) {
+            markerConfig.customLabel = "Reference";
+        }
+        PlotMarker(markerConfig, marker.clickInfo);
     }
 
     EndPlot();
 
     ImGui::SliderFloat("Range", &range, 0.0F, static_cast<float>(liveState.fftDuration));
     ImGui::Checkbox("Enable Smoothing", &smoothing);
+
+    // now, marker selection
+    ImGui::NextColumn();
+    ImGui::SetColumnWidth(-1, size.x * 0.25F);
+    ImGui::BeginChild("marker list");
+    ImGui::PushItemWidth(-1.0F);
+    ImGui::Text("Markers");
+    if (ImGui::Button("Reset Reference")) {
+        clearRef();
+    }
+
+    for (auto markerIter = markers.begin(); markerIter != markers.end(); ++markerIter) {
+        ImGui::PushID(&(*markerIter));
+        if (ImGui::RadioButton("##markerRefLabel", markerIter->isRef)) {
+            clearRef();
+            markerIter->isRef = true;
+            refValue = markerIter->clickInfo.x;
+        }
+        ImGui::SameLine();
+        ImGui::TextColored(markerIter->color, "%+.4f", markerIter->clickInfo.x - refValue);
+        ImGui::SameLine();
+
+        // needs to stay last, or markerIter might be end() when used!
+        if (ImGui::Button("x##deleteMarker")) {
+            if (markerIter->isRef) {
+                clearRef();
+            }
+            markerIter = markers.erase(markerIter);
+            ImGui::PopID(); // FIXME: this flickers, but less than the original solution
+            break;
+        }
+        ImGui::PopID();
+    }
+    ImGui::PopItemWidth();
+    ImGui::EndChild();
+    ImGui::Columns(1);
     ImGui::End();
+}
+
+void IrView::addMarker(const StateData& state, const PlotClickInfo& info) noexcept
+{
+    IrMarker marker;
+    marker.clickInfo = info;
+    marker.color = state.uniqueCol;
+    markers.push_back(marker);
+}
+void IrView::clearRef() noexcept
+{
+    refValue = 0.0;
+    for (auto& marker : markers) {
+        marker.isRef = 0;
+    }
 }
