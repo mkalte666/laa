@@ -40,5 +40,6 @@ private:
     std::list<IrMarker> markers = {};
     double refValue = 0.0;
     void clearRef() noexcept;
+    void findPeak(StateManager& stateManager) noexcept;
 };
 #endif //laa_irview_h

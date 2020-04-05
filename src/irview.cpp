@@ -16,6 +16,8 @@
  */
 
 #include "irview.h"
+#include "dsp/peak.h"
+
 void IrView::update(StateManager& stateManager, std::string idHint)
 {
     ImGui::Begin((idHint + "Mag").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
@@ -111,6 +113,9 @@ void IrView::update(StateManager& stateManager, std::string idHint)
     ImGui::BeginChild("marker list");
     ImGui::PushItemWidth(-1.0F);
     ImGui::Text("Markers");
+    if (ImGui::Button("Find Peak")) {
+        findPeak(stateManager);
+    }
     if (ImGui::Button("Reset Reference")) {
         clearRef();
     }
@@ -155,5 +160,43 @@ void IrView::clearRef() noexcept
     refValue = 0.0;
     for (auto& marker : markers) {
         marker.isRef = 0;
+    }
+}
+
+IrMarker makeMarkerFromPeak(const StateData& stateData)
+{
+    size_t index = findMax(stateData.impulseResponse);
+    double yVal = stateData.impulseResponse[index];
+    double xVal = stateData.fftDuration * static_cast<double>(index) / static_cast<double>(stateData.fftLen);
+
+    IrMarker result = {};
+    result.clickInfo.clicked = true;
+    result.clickInfo.x = xVal;
+    result.clickInfo.y = yVal;
+    result.color = stateData.uniqueCol;
+
+    return result;
+}
+
+void IrView::findPeak(StateManager& stateManager) noexcept
+{
+    IrMarker marker = {};
+    bool anyActive = false;
+    const auto& liveState = stateManager.getLive();
+    if (liveState.active) {
+        anyActive = true;
+        marker = makeMarkerFromPeak(liveState);
+    } else {
+        for (const auto& state : stateManager.getSaved()) {
+            if (state.active) {
+                marker = makeMarkerFromPeak(state);
+                anyActive = true;
+                break;
+            }
+        }
+    }
+
+    if (anyActive) {
+        markers.push_back(marker);
     }
 }
