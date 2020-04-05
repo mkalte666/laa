@@ -67,7 +67,7 @@ void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View& 
     if (ImGui::Button("Signal")) {
         view = View::Signal;
     }
-    ImGui::Text("Fourier Transform");
+    ImGui::Text("DFT");
     if (ImGui::Button("Magnitude")) {
         view = View::Magnitude;
     }
