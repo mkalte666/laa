@@ -7,7 +7,7 @@ Head over to the [Releases](https://github.com/mkalte666/laa/releases) for the c
 
 ## Building 
 The only dependencies of laa should be 
- * SDL2, >= 2.0.10 
+ * SDL2, >= 2.0.12
  * fftw3, >= 3.3.8
  * OpenGL libraries 
  
