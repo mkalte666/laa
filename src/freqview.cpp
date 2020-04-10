@@ -22,7 +22,7 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
     ImGui::Begin((idHint + "Freq").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-    const auto& data = choose(smoothing, liveState.smoothedFrequencyResponse, liveState.frequencyResponse);
+    const auto& data = choose(smoothing, liveState.smoothedTransferFunction, liveState.transferFunction);
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
@@ -64,7 +64,7 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-        auto& savedData = choose(smoothing, state.smoothedFrequencyResponse, state.frequencyResponse);
+        auto& savedData = choose(smoothing, state.smoothedTransferFunction, state.transferFunction);
         PlotSourceConfig sourceConfig;
         sourceConfig.count = state.fftLen / 2;
         sourceConfig.xMin = 0.0;

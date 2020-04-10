@@ -33,14 +33,21 @@ struct StateData {
     // windowed input
     RealVec windowedInput = {};
     RealVec windowedReference = {};
-    // unfiltered fft
+    // fft
     ComplexVec fftInput = {};
     ComplexVec fftReference = {};
     ComplexVec smoothedFftInput = {};
-    ComplexVec frequencyResponse = {};
-    ComplexVec smoothedFrequencyResponse = {};
+    // H and h
+    ComplexVec transferFunction = {};
+    ComplexVec smoothedTransferFunction = {};
     RealVec impulseResponse = {};
     RealVec smoothedImpulseResponse = {};
+    // coherence and PSD
+    RealVec psdEstimateInput = {};
+    RealVec psdEstimateReference = {};
+    ComplexVec csdEstimate = {};
+    RealVec coherence = {};
+    RealVec smoothedCoherence = {};
 
     // this is here for convenience, to be filled in in various places
     ImColor uniqueCol = 0xFFFFFFFF;

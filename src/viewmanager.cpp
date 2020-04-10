@@ -80,6 +80,9 @@ void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View& 
     if (ImGui::Button("FR")) {
         view = View::FrequencyResponse;
     }
+    if (ImGui::Button("Coherence")) {
+        view = View::Coherence;
+    }
     ImGui::PopItemWidth();
     ImGui::End();
 
@@ -102,6 +105,9 @@ void ViewManager::drawSelectorAndContent(ImVec2 windowSize, float offset, View& 
         break;
     case View::FrequencyResponse:
         freqView.update(stateManager, idHint);
+        break;
+    case View::Coherence:
+        coherenceView.update(stateManager, idHint);
         break;
     }
 

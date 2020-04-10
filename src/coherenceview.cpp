@@ -15,23 +15,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "phaseview.h"
-void PhaseView::update(StateManager& stateManager, std::string idHint)
+#include "coherenceview.h"
+void CoherenceView::update(StateManager& stateManager, std::string idHint)
 {
-    ImGui::Begin((idHint + "Phase").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    ImGui::Begin((idHint + "Coherence").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
     const auto& liveState = stateManager.getLive();
-    const auto& data = choose(smoothing, liveState.smoothedTransferFunction, liveState.transferFunction);
+    auto& data = choose(smoothing, liveState.smoothedCoherence, liveState.coherence);
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
     plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.8F);
-    plotConfig.yAxisConfig.min = -M_PI;
-    plotConfig.yAxisConfig.max = M_PI;
-    plotConfig.yAxisConfig.enableLogScale = false;
-    plotConfig.yAxisConfig.gridInterval = M_PI / 2;
+    plotConfig.yAxisConfig.min = 0.0;
+    plotConfig.yAxisConfig.max = 1.0;
+    plotConfig.yAxisConfig.gridInterval = .1;
 
-    plotConfig.label = "Mag";
+    plotConfig.label = "Coherence";
 
     plotConfig.xAxisConfig.min = static_cast<float>(min);
     plotConfig.xAxisConfig.max = static_cast<float>(max);
@@ -48,15 +47,10 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.xMax = liveState.sampleRate / 2.0;
         sourceConfig.color = liveState.uniqueCol;
         sourceConfig.active = liveState.active;
-        sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::AbsMax;
         Plot(
             sourceConfig,
             [&data](size_t idx) {
-                if (idx >= data.size()) {
-                    return 0.0;
-                }
-
-                return phase(data[idx]);
+                return data[idx];
             });
     }
 
@@ -64,7 +58,7 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-        const auto& savedData = choose(smoothing, state.smoothedTransferFunction, state.transferFunction);
+        auto& savedData = choose(smoothing, state.smoothedCoherence, state.coherence);
         PlotSourceConfig sourceConfig;
         sourceConfig.count = state.fftLen / 2;
         sourceConfig.xMin = 0.0;
@@ -73,10 +67,7 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.active = state.active;
         Plot(
             sourceConfig, [&savedData](size_t idx) {
-                if (idx >= savedData.size()) {
-                    return 0.0;
-                }
-                return phase(savedData[idx]);
+                return savedData[idx];
             });
     }
 
@@ -87,6 +78,6 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
     min = std::clamp(min, 30.0F, 20000.0F);
     ImGui::SliderFloat("max", &max, 30.0F, 20000.0F, "%.1f", 4.0F);
     max = std::clamp(max, min, 20000.0F);
-    ImGui::Checkbox("Enable Smoothing", &smoothing);
+    ImGui::Checkbox("Coherence Smoothing", &smoothing);
     ImGui::End();
 }

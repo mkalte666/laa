@@ -88,4 +88,13 @@ inline double mag(const Complex& c)
 {
     return cabs(c);
 }
+
+inline double magSquared(const Complex& c)
+{
+    double real = creal(c);
+    double imag = cimag(c);
+
+    return real * real + imag * imag;
+}
+
 #endif //LAA_FFT_H

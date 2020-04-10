@@ -28,8 +28,8 @@ void MagView::update(StateManager& stateManager, std::string idHint)
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
     plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.8F);
-    plotConfig.yAxisConfig.min = 0.00001;
-    plotConfig.yAxisConfig.max = 1000.0;
+    plotConfig.yAxisConfig.min = 0.000001;
+    plotConfig.yAxisConfig.max = 1.0;
     plotConfig.yAxisConfig.enableLogScale = true;
     plotConfig.yAxisConfig.gridInterval = 1.0;
     plotConfig.yAxisConfig.gridHint = 1.0;

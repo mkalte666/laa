@@ -19,6 +19,7 @@
 #define laa_viewmanager_h
 
 #include "audiohandler.h"
+#include "coherenceview.h"
 #include "freqview.h"
 #include "irview.h"
 #include "magview.h"
@@ -32,7 +33,8 @@ enum class View {
     Magnitude,
     Phase,
     ImpulseResponse,
-    FrequencyResponse
+    FrequencyResponse,
+    Coherence
 };
 
 class ViewManager {
@@ -49,6 +51,7 @@ private:
     PhaseView phaseView = {};
     IrView irView = {};
     FreqView freqView = {};
+    CoherenceView coherenceView = {};
     View upper = View::Magnitude;
     View lower = View::Signal;
 };

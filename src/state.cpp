@@ -29,14 +29,19 @@ State::State(size_t fftLen) noexcept
     data.fftInput.resize(LAA_MAX_FFT_LENGTH);
     data.fftReference.resize(LAA_MAX_FFT_LENGTH);
     data.smoothedFftInput.resize(LAA_MAX_FFT_LENGTH);
-    data.frequencyResponse.resize(LAA_MAX_FFT_LENGTH);
-    data.smoothedFrequencyResponse.resize(LAA_MAX_FFT_LENGTH);
+    data.transferFunction.resize(LAA_MAX_FFT_LENGTH);
+    data.smoothedTransferFunction.resize(LAA_MAX_FFT_LENGTH);
     data.impulseResponse.resize(LAA_MAX_FFT_LENGTH);
     data.smoothedImpulseResponse.resize(LAA_MAX_FFT_LENGTH);
+    data.psdEstimateInput.resize(LAA_MAX_FFT_LENGTH);
+    data.psdEstimateReference.resize(LAA_MAX_FFT_LENGTH);
+    data.csdEstimate.resize(LAA_MAX_FFT_LENGTH);
+    data.coherence.resize(LAA_MAX_FFT_LENGTH);
+    data.smoothedCoherence.resize(LAA_MAX_FFT_LENGTH);
 
     fftInputPlan = fftw_plan_dft_r2c_1d(static_cast<int>(data.fftLen), reinterpret_cast<double*>(data.windowedInput.data()), reinterpret_cast<fftw_complex*>(data.fftInput.data()), FFTW_MEASURE);
     fftReferencePlan = fftw_plan_dft_r2c_1d(static_cast<int>(data.fftLen), reinterpret_cast<double*>(data.windowedReference.data()), reinterpret_cast<fftw_complex*>(data.fftReference.data()), FFTW_MEASURE);
-    impulseResponsePlan = fftw_plan_dft_c2r_1d(static_cast<int>(data.fftLen), reinterpret_cast<fftw_complex*>(data.frequencyResponse.data()), reinterpret_cast<double*>(data.impulseResponse.data()), FFTW_MEASURE | FFTW_PRESERVE_INPUT);
+    impulseResponsePlan = fftw_plan_dft_c2r_1d(static_cast<int>(data.fftLen), reinterpret_cast<fftw_complex*>(data.transferFunction.data()), reinterpret_cast<double*>(data.impulseResponse.data()), FFTW_MEASURE | FFTW_PRESERVE_INPUT);
 }
 
 State::~State() noexcept
@@ -56,24 +61,46 @@ void State::calc() noexcept
     fftw_execute(fftInputPlan);
     fftw_execute(fftReferencePlan);
 
-    // make frequency response
+    // make things we can derive from the fft
+    auto dFftLen = static_cast<double>(data.fftLen);
     for (size_t i = 0; i < data.fftLen; i++) {
-        // frequency response XxH = Y => H = Y/X
-        data.frequencyResponse[i] = data.fftInput[i] / data.fftReference[i];
+        // normalize first
+        data.fftInput[i] /= dFftLen;
+        data.fftReference[i] /= dFftLen;
+
+        // transfer function:  XxH = Y => H = Y/X
+        data.transferFunction[i] = data.fftInput[i] / data.fftReference[i];
+    }
+
+    // divide our range into segments
+    // estimate psd and csd over these segments
+    // then estimate the squared coherence at a point.
+    size_t psdDepth = std::clamp(data.fftLen / 1024ull, 64ull, 512ull);
+    for (size_t i = 0; i < data.fftLen; i++) {
+        size_t start = i < psdDepth ? 0 : i - psdDepth;
+        size_t end = std::min(data.fftLen, i + psdDepth);
+        data.psdEstimateInput[i] = 0.0;
+        data.psdEstimateReference[i] = 0.0;
+        data.csdEstimate[i] = 0.0;
+        for (size_t j = start; j < end; j++) {
+            data.psdEstimateReference[i] += magSquared(data.fftReference[j]);
+            data.psdEstimateInput[i] += magSquared(data.fftInput[j]);
+            data.csdEstimate[i] += conj(data.fftReference[j]) * data.fftInput[j];
+        }
+        data.coherence[i] = magSquared(data.csdEstimate[i]) / (data.psdEstimateReference[i] * data.psdEstimateInput[i]);
     }
 
     // compute impulse response
     fftw_execute(impulseResponsePlan);
-    // thise one is unnormalited however
-    auto dFftLen = static_cast<double>(data.fftLen);
-    for (size_t i = 0; i < data.fftLen; ++i) {
+    // normalize
+    for (size_t i = 0; i < data.fftLen; i++) {
         data.impulseResponse[i] /= dFftLen;
     }
-
     // smooth out things
     smooth(data.smoothedFftInput, data.fftInput);
-    smooth(data.smoothedFrequencyResponse, data.frequencyResponse);
+    smooth(data.smoothedTransferFunction, data.transferFunction);
     smooth(data.smoothedImpulseResponse, data.impulseResponse);
+    smooth(data.smoothedCoherence, data.coherence);
 }
 
 const StateData& State::getData() noexcept
