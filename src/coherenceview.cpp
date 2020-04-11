@@ -18,7 +18,7 @@
 #include "coherenceview.h"
 void CoherenceView::update(StateManager& stateManager, std::string idHint)
 {
-    ImGui::Begin((idHint + "Coherence").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    ImGui::BeginChild((idHint + "Coherence").c_str());
 
     const auto& liveState = stateManager.getLive();
     auto& data = choose(smoothing, liveState.smoothedCoherence, liveState.coherence);
@@ -79,5 +79,5 @@ void CoherenceView::update(StateManager& stateManager, std::string idHint)
     ImGui::SliderFloat("max", &max, 30.0F, 20000.0F, "%.1f", 4.0F);
     max = std::clamp(max, min, 20000.0F);
     ImGui::Checkbox("Coherence Smoothing", &smoothing);
-    ImGui::End();
+    ImGui::EndChild();
 }

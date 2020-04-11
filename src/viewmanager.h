@@ -28,21 +28,12 @@
 #include "signalview.h"
 #include "statemanager.h"
 
-enum class View {
-    Signal,
-    Magnitude,
-    Phase,
-    ImpulseResponse,
-    FrequencyResponse,
-    Coherence
-};
-
 class ViewManager {
 public:
     void update(ImVec2 windowSize) noexcept;
 
 private:
-    void drawSelectorAndContent(ImVec2 windowSize, float offset, View& view) noexcept;
+    void drawSelectorAndContent(ImVec2 windowSize, float offset) noexcept;
 
     AudioHandler audioHandler = {};
     StateManager stateManager = {};
@@ -52,8 +43,6 @@ private:
     IrView irView = {};
     FreqView freqView = {};
     CoherenceView coherenceView = {};
-    View upper = View::Magnitude;
-    View lower = View::Signal;
 };
 
 #endif //laa_viewmanager_h

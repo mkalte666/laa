@@ -20,7 +20,7 @@
 
 void IrView::update(StateManager& stateManager, std::string idHint)
 {
-    ImGui::Begin((idHint + "Mag").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    ImGui::BeginChild((idHint + "Mag").c_str());
     auto size = ImGui::GetWindowContentRegionMax();
 
     // begin with the plot
@@ -145,7 +145,7 @@ void IrView::update(StateManager& stateManager, std::string idHint)
     ImGui::PopItemWidth();
     ImGui::EndChild();
     ImGui::Columns(1);
-    ImGui::End();
+    ImGui::EndChild();
 }
 
 void IrView::addMarker(const StateData& state, const PlotClickInfo& info) noexcept

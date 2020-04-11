@@ -19,7 +19,7 @@
 
 void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
 {
-    ImGui::Begin((idHint + "Signal").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    ImGui::BeginChild((idHint + "Signal").c_str());
 
     const auto& liveState = stateManager.getLive();
     const auto& data = liveState.input;
@@ -85,5 +85,5 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
 
     ImGui::SliderFloat("Range", &min, static_cast<float>(0.0 - liveState.fftDuration), 0.0F);
 
-    ImGui::End();
+    ImGui::EndChild();
 }

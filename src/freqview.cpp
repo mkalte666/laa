@@ -19,7 +19,7 @@
 #include "dsp/smoothing.h"
 void FreqView::update(StateManager& stateManager, std::string idHint)
 {
-    ImGui::Begin((idHint + "Freq").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    ImGui::BeginChild((idHint + "Freq").c_str());
 
     const auto& liveState = stateManager.getLive();
     const auto& data = choose(smoothing, liveState.smoothedTransferFunction, liveState.transferFunction);
@@ -89,5 +89,5 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
     ImGui::SliderFloat("max##freq", &max, 30.0F, 20000.0F, "%.1f", 4.0F);
     max = std::clamp(max, min, 20000.0F);
     ImGui::Checkbox("Enable Smoothing", &smoothing);
-    ImGui::End();
+    ImGui::EndChild();
 }
