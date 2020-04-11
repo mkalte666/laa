@@ -319,7 +319,7 @@ double AudioHandler::genNextPlaybackSample()
 void AudioHandler::startAudio()
 {
     stopAudio();
-    rtAudio->openStream(&config.captureParams, &config.playbackParams, RTAUDIO_FLOAT32, config.sampleRate, &config.bufferFrames, &rtAudioCallback, this);
+    rtAudio->openStream(&config.playbackParams, &config.captureParams, RTAUDIO_FLOAT32, config.sampleRate, &config.bufferFrames, &rtAudioCallback, this);
     rtAudio->startStream();
 
     running = true;
