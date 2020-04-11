@@ -10,6 +10,7 @@ The only dependencies of laa should be
  * SDL2, >= 2.0.12
  * fftw3, >= 3.3.8
  * OpenGL libraries 
+ * rtaudio, >= 5.1.0
  
 The rest is in submodules, so make sure to get those!
 
