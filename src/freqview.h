@@ -27,6 +27,7 @@ public:
 private:
     double min = 30.0;
     double max = 20000.0;
+    double yRange = 2.0;
     bool smoothing = true;
 };
 

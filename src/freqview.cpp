@@ -28,10 +28,13 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
-    plotConfig.size = ImVec2(size.x * 0.98F, size.y - 75.0F);
+    plotConfig.size = ImVec2(size.x * 0.98F - 55.0F, size.y - 75.0F);
     plotConfig.yAxisConfig.min = 0.0;
-    plotConfig.yAxisConfig.max = 2.0;
+    plotConfig.yAxisConfig.max = yRange;
     plotConfig.yAxisConfig.gridInterval = 0.25;
+    if (yRange < 0.5) {
+        plotConfig.yAxisConfig.gridInterval = 0.05;
+    }
 
     plotConfig.label = "Mag";
 
@@ -84,6 +87,8 @@ void FreqView::update(StateManager& stateManager, std::string idHint)
     }
 
     EndPlot();
+    ImGui::SameLine();
+    VMidpointSlider("##yRangeIR", 0.05, 10.0, 2.0, yRange, ImVec2(30.0F, plotConfig.size.y), [](double) { return std::string(); });
 
     ImGui::PushItemWidth(plotConfig.size.x / 3.0F);
     MidpointSlider("min##freq", 30.0, 20000.0, 1000.0, min);
