@@ -101,6 +101,8 @@ private:
     std::queue<State*> processStates = {};
     State* doneState = nullptr;
     size_t frameCount = 0;
+
+    StateFilterConfig stateFilterConfig = {};
 };
 
 #endif //laa_audiohandler_h

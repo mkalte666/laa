@@ -25,6 +25,16 @@
 static constexpr size_t LAA_MAX_FFT_LENGTH = 65536;
 static constexpr size_t LAA_MIN_FFT_LENGTH = 512;
 
+enum class StateWindowFilter {
+    None,
+    Hamming,
+    Blackman
+};
+
+struct StateFilterConfig {
+    StateWindowFilter windowFilter = StateWindowFilter::Blackman;
+};
+
 struct StateData {
     size_t fftLen = 0;
     // raw input
@@ -69,7 +79,7 @@ public:
     State& operator=(const State&) noexcept = delete;
     State& operator=(State&&) noexcept = delete;
 
-    void calc() noexcept;
+    void calc(const StateFilterConfig& filterConfig) noexcept;
 
     const StateData& getData() noexcept;
     StateData& accessData() noexcept;

@@ -51,11 +51,24 @@ State::~State() noexcept
     fftw_destroy_plan(fftInputPlan);
 }
 
-void State::calc() noexcept
+void State::calc(const StateFilterConfig& filterConfig) noexcept
 {
     // copy input into windows
-    blackman(data.windowedInput, data.input);
-    blackman(data.windowedReference, data.reference);
+    switch (filterConfig.windowFilter) {
+
+    case StateWindowFilter::None:
+        noWindow(data.windowedInput, data.input);
+        noWindow(data.windowedReference, data.reference);
+        break;
+    case StateWindowFilter::Hamming:
+        hamming(data.windowedInput, data.input);
+        hamming(data.windowedReference, data.reference);
+        break;
+    case StateWindowFilter::Blackman:
+        blackman(data.windowedInput, data.input);
+        blackman(data.windowedReference, data.reference);
+        break;
+    }
 
     // run fft for input and reference
     fftw_execute(fftInputPlan);

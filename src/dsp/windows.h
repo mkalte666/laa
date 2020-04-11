@@ -41,4 +41,12 @@ inline void blackman(std::vector<T, Talloc>& out, const std::vector<T, Talloc>& 
     }
 }
 
+template <class T, class Talloc = std::allocator<T>>
+inline void noWindow(std::vector<T, Talloc>& out, const std::vector<T, Talloc>& in)
+{
+    for (size_t i = 0; i < in.size(); i++) {
+        out[i] = in[i];
+    }
+}
+
 #endif //laa_hamming_h

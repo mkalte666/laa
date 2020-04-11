@@ -46,6 +46,20 @@ std::string getStr(const FunctionGeneratorType& gen) noexcept
     return "";
 }
 
+std::string getStr(const StateWindowFilter& filter) noexcept
+{
+    switch (filter) {
+    case StateWindowFilter::None:
+        return "None";
+    case StateWindowFilter::Hamming:
+        return "Hamming";
+    case StateWindowFilter::Blackman:
+        return "Blackman";
+    }
+
+    return "";
+}
+
 AudioHandler::AudioHandler() noexcept
 {
     if (s2::Audio::getNumDevices(false) > 0) {
@@ -255,6 +269,19 @@ void AudioHandler::update() noexcept
 
         ImGui::EndCombo();
     }
+    ImGui::Text("Window Filter");
+    if (ImGui::BeginCombo("##Window Config", getStr(stateFilterConfig.windowFilter).c_str())) {
+        if (ImGui::Selectable("None", stateFilterConfig.windowFilter == StateWindowFilter::None)) {
+            stateFilterConfig.windowFilter = StateWindowFilter::None;
+        }
+        if (ImGui::Selectable("Hamming", stateFilterConfig.windowFilter == StateWindowFilter::Hamming)) {
+            stateFilterConfig.windowFilter = StateWindowFilter::Hamming;
+        }
+        if (ImGui::Selectable("Blackman", stateFilterConfig.windowFilter == StateWindowFilter::Blackman)) {
+            stateFilterConfig.windowFilter = StateWindowFilter::Blackman;
+        }
+        ImGui::EndCombo();
+    }
 
     ImGui::PopItemWidth();
     ImGui::End();
@@ -457,7 +484,7 @@ void AudioHandler::processingWorker() noexcept
         }
 
         // this takes time, and is the reason we are a thread
-        current->calc();
+        current->calc(stateFilterConfig);
 
         // advance the doneState
         processingLock.lock();
