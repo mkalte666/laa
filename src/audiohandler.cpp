@@ -514,7 +514,7 @@ std::vector<unsigned int> AudioConfig::getLegalSampleRates() noexcept
     auto playRates = playbackDevice.sampleRates;
     for (auto capRate : capRates) {
         for (auto playRate : playRates) {
-            if (capRate == playRate) {
+            if (capRate == playRate && capRate < 100000 && capRate > 40000) {
                 result.push_back(capRate);
                 break;
             }
