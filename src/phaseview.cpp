@@ -27,6 +27,7 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
     plotConfig.size = ImVec2(size.x * 0.98F, size.y - 75.0F);
+    plotConfig.maxLineJumpDistance = M_PI;
     plotConfig.yAxisConfig.min = -M_PI;
     plotConfig.yAxisConfig.max = M_PI;
     plotConfig.yAxisConfig.enableLogScale = false;
