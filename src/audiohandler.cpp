@@ -282,6 +282,13 @@ void AudioHandler::update() noexcept
         }
         ImGui::EndCombo();
     }
+    ImGui::Text("FFT Averaging");
+    auto iAvgCount = static_cast<int>(stateFilterConfig.avgCount);
+    ImGui::InputInt("##avgCount", &iAvgCount, 1, LAA_MAX_FFT_AVG);
+    stateFilterConfig.avgCount = std::clamp(static_cast<size_t>(iAvgCount), static_cast<size_t>(0), LAA_MAX_FFT_LENGTH);
+    if (ImGui::Button("Reset Avg")) {
+        stateFilterConfig.clearAvg();
+    }
 
     ImGui::PopItemWidth();
     ImGui::End();

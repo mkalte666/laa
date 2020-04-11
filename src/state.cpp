@@ -28,7 +28,8 @@ State::State(size_t fftLen) noexcept
     data.windowedReference.resize(LAA_MAX_FFT_LENGTH);
     data.fftInput.resize(LAA_MAX_FFT_LENGTH);
     data.fftReference.resize(LAA_MAX_FFT_LENGTH);
-    data.smoothedFftInput.resize(LAA_MAX_FFT_LENGTH);
+    data.avgMag.resize(LAA_MAX_FFT_LENGTH);
+    data.smoothedAvgMag.resize(LAA_MAX_FFT_LENGTH);
     data.transferFunction.resize(LAA_MAX_FFT_LENGTH);
     data.smoothedTransferFunction.resize(LAA_MAX_FFT_LENGTH);
     data.impulseResponse.resize(LAA_MAX_FFT_LENGTH);
@@ -51,7 +52,7 @@ State::~State() noexcept
     fftw_destroy_plan(fftInputPlan);
 }
 
-void State::calc(const StateFilterConfig& filterConfig) noexcept
+void State::calc(StateFilterConfig& filterConfig) noexcept
 {
     // copy input into windows
     switch (filterConfig.windowFilter) {
@@ -80,10 +81,14 @@ void State::calc(const StateFilterConfig& filterConfig) noexcept
         // normalize first
         data.fftInput[i] /= dFftLen;
         data.fftReference[i] /= dFftLen;
-
+        // magnitude into avgMag
+        data.avgMag[i] = mag(data.fftInput[i]);
         // transfer function:  XxH = Y => H = Y/X
         data.transferFunction[i] = data.fftInput[i] / data.fftReference[i];
     }
+
+    // filter magnitude
+    filterConfig.makeAvg(data.avgMag, data.fftLen);
 
     // divide our range into segments
     // estimate psd and csd over these segments
@@ -110,7 +115,7 @@ void State::calc(const StateFilterConfig& filterConfig) noexcept
         data.impulseResponse[i] /= dFftLen;
     }
     // smooth out things
-    smooth(data.smoothedFftInput, data.fftInput);
+    smooth(data.smoothedAvgMag, data.avgMag);
     smooth(data.smoothedTransferFunction, data.transferFunction);
     smooth(data.smoothedImpulseResponse, data.impulseResponse);
     smooth(data.smoothedCoherence, data.coherence);
@@ -124,4 +129,46 @@ const StateData& State::getData() noexcept
 StateData& State::accessData() noexcept
 {
     return data;
+}
+
+StateFilterConfig::StateFilterConfig() noexcept
+{
+    avgMagnitudes.resize(LAA_MAX_FFT_AVG, RealVec());
+    for (size_t i = 0; i < LAA_MAX_FFT_AVG; i++) {
+        avgMagnitudes[i].resize(LAA_MAX_FFT_LENGTH);
+    }
+}
+void StateFilterConfig::clearAvg() noexcept
+{
+    for (size_t i = 0; i < LAA_MAX_FFT_AVG; i++) {
+        for (size_t j = 0; j < LAA_MAX_FFT_LENGTH; j++) {
+            avgMagnitudes[i][j] = 0.0;
+        }
+    }
+}
+
+void StateFilterConfig::makeAvg(RealVec& inOut, size_t fftLen) noexcept
+{
+    if (avgCount == 0) {
+        return;
+    }
+
+    if (fftLen != lastFftLen) {
+        clearAvg();
+        lastFftLen = fftLen;
+    }
+
+    for (size_t i = 0; i < fftLen; i++) {
+        avgMagnitudes[currAvg][i] = inOut[i];
+        inOut[i] = 0.0;
+        for (size_t avgI = 0; avgI < avgCount; avgI++) {
+            inOut[i] += avgMagnitudes[avgI][i];
+        }
+        inOut[i] /= static_cast<double>(avgCount);
+    }
+
+    ++currAvg;
+    if (currAvg >= avgCount) {
+        currAvg = 0;
+    }
 }

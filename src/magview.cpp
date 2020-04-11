@@ -24,7 +24,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
     ImGui::BeginChild((idHint + "Mag").c_str());
 
     const auto& liveState = stateManager.getLive();
-    auto& data = choose(smoothing, liveState.smoothedFftInput, liveState.fftInput);
+    auto& data = choose(smoothing, liveState.smoothedAvgMag, liveState.avgMag);
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
@@ -59,7 +59,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
                     return 0.0;
                 }
 
-                return mag(data[idx]);
+                return data[idx];
             });
     }
 
@@ -67,7 +67,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
         if (!state.visible) {
             continue;
         }
-        auto& savedData = choose(smoothing, state.smoothedFftInput, state.fftInput);
+        auto& savedData = choose(smoothing, state.smoothedAvgMag, state.avgMag);
         PlotSourceConfig sourceConfig;
         sourceConfig.count = state.fftLen / 2;
         sourceConfig.xMin = 0.0;
@@ -79,7 +79,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
                 if (idx >= savedData.size()) {
                     return 0.0;
                 }
-                return mag(savedData[idx]);
+                return savedData[idx];
             });
     }
 
