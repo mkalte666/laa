@@ -16,7 +16,9 @@
  */
 
 #include "audiohandler.h"
+#include "midpointslider.h"
 #include <filesystem>
+
 namespace fs = std::filesystem;
 
 void clearStateQueue(std::queue<State*>& q)
@@ -235,6 +237,8 @@ void AudioHandler::update() noexcept
             sineGenerator.setFrequency(static_cast<double>(freq));
         }
     }
+    ImGui::Text("Output Volume");
+    MidpointSlider("##volime", 0.0, 1.0, 0.5, config.outputVolume);
 
     ImGui::Separator();
     ImGui::Text("Analysis Length");
@@ -322,7 +326,7 @@ void AudioHandler::playbackCallback(Uint8* stream, int len)
     auto count = static_cast<size_t>(len) / sizeof(Sint32);
     auto* ptr = reinterpret_cast<Sint32*>(stream);
     for (auto i = 0ull; i + 1 < count; i += 2) {
-        double f = genNextPlaybackSample() * SDL_MAX_SINT32;
+        double f = config.outputVolume * genNextPlaybackSample() * SDL_MAX_SINT32;
 
         ptr[i] = static_cast<Sint32>(f);
         ptr[i + 1] = static_cast<Sint32>(f);

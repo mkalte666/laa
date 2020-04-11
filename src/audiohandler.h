@@ -29,6 +29,7 @@
 #include <thread>
 
 struct AudioConfig {
+    double outputVolume = 1.0;
     std::string driver = "";
     std::string captureName = "None";
     std::string playbackName = "None";
