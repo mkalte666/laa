@@ -189,7 +189,8 @@ void AudioHandler::update() noexcept
         }
     } else {
         if (ImGui::Button("Stop Audio")) {
-            status = "Stopping is not implemented yet";
+            stopAudio();
+            status = "Stopped";
         }
     }
 
@@ -278,12 +279,7 @@ double AudioHandler::genNextPlaybackSample()
 
 void AudioHandler::startAudio()
 {
-    if (running) {
-        s2::Audio::closeDevice(captureId);
-        s2::Audio::closeDevice(playbackId);
-    }
-
-    running = false;
+    stopAudio();
 
     s2::Audio::Spec want;
     SDL_zero(want);
@@ -319,6 +315,17 @@ void AudioHandler::startAudio()
 
     running = true;
     status = std::string("Running (") + s2::Audio::getCurrentDriver() + ")";
+}
+
+void AudioHandler::stopAudio()
+{
+    if (running) {
+        resetStates();
+        s2::Audio::closeDevice(captureId);
+        s2::Audio::closeDevice(playbackId);
+    }
+
+    running = false;
 }
 
 void AudioHandler::playbackCallback(Uint8* stream, int len)

@@ -72,6 +72,7 @@ private:
     double genNextPlaybackSample();
 
     void startAudio();
+    void stopAudio();
     void playbackCallback(Uint8* stream, int len);
     void captureCallback(Uint8* stream, int len);
     static void playbackCallbackStatic(void* userdata, Uint8* stream, int len);
