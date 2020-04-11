@@ -187,7 +187,7 @@ void AudioHandler::update() noexcept
 
         ImGui::Text("Sample Rate");
         if (ImGui::BeginCombo("##Sample Rate", std::to_string(config.sampleRate).c_str())) {
-            for (auto rate : config.captureDevice.sampleRates) {
+            for (auto rate : config.getLegalSampleRates()) {
                 ImGui::PushID(static_cast<int>(rate));
                 if (ImGui::Selectable(std::to_string(rate).c_str(), rate == config.sampleRate)) {
                     config.sampleRate = rate;
@@ -505,5 +505,20 @@ std::string AudioConfig::sampleCountToString(size_t count) const noexcept
     std::string result;
     double seconds = samplesToSeconds(count);
     result = std::to_string(count) + " (" + std::to_string(seconds) + "s / " + std::to_string(1.0 / seconds) + "Hz)";
+    return result;
+}
+std::vector<unsigned int> AudioConfig::getLegalSampleRates() noexcept
+{
+    std::vector<unsigned int> result;
+    auto capRates = captureDevice.sampleRates;
+    auto playRates = playbackDevice.sampleRates;
+    for (auto capRate : capRates) {
+        for (auto playRate : playRates) {
+            if (capRate == playRate) {
+                result.push_back(capRate);
+                break;
+            }
+        }
+    }
     return result;
 }

@@ -43,6 +43,7 @@ struct AudioConfig {
     [[nodiscard]] static std::vector<size_t> getPossibleAnalysisSampleRates() noexcept;
     double samplesToSeconds(size_t count) const noexcept;
     std::string sampleCountToString(size_t count) const noexcept;
+    [[nodiscard]] std::vector<unsigned int> getLegalSampleRates() noexcept;
 };
 
 enum class FunctionGeneratorType {
