@@ -151,7 +151,7 @@ void AudioHandler::update() noexcept
         if (ImGui::BeginCombo("##Device", config.device.name.c_str())) {
             for (unsigned int i = 0; i < rtAudio->getDeviceCount(); i++) {
                 auto device = rtAudio->getDeviceInfo(i);
-                if (device.duplexChannels < 2) {
+                if (device.duplexChannels < 2 || device.inputChannels < 2 || device.outputChannels < 2) {
                     continue;
                 }
                 ImGui::PushID(static_cast<int>(i));
@@ -178,9 +178,23 @@ void AudioHandler::update() noexcept
             ImGui::EndCombo();
         }
 
+        int iFirstPlayback = static_cast<int>(config.playbackParams.firstChannel);
+        int iFirstCapture = static_cast<int>(config.captureParams.firstChannel);
+        ImGui::Text("First Capture");
+        ImGui::InputInt("##firstCap", &iFirstCapture, 1, 1);
+        ImGui::Checkbox("Swap Reference", &config.inputAndReferenceAreSwapped);
+        ImGui::Text("First Playback");
+        ImGui::InputInt("##firstPlayback", &iFirstPlayback, 1, 1);
+        config.playbackParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstPlayback), 0u, config.device.outputChannels - 2);
+        config.captureParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstCapture), 0u, config.device.inputChannels - 2);
     } else {
         ImGui::Text("Device: %s", config.device.name.c_str());
         ImGui::Text("Sample Rate: %d", static_cast<int>(config.sampleRate));
+        ImGui::Text("First Playback: %d", static_cast<int>(config.playbackParams.firstChannel));
+        ImGui::Text("First Capture: %d", static_cast<int>(config.playbackParams.firstChannel));
+        if (config.inputAndReferenceAreSwapped) {
+            ImGui::Text("Input and Ref Swapped!");
+        }
     }
 
     if (!running) {
@@ -195,8 +209,6 @@ void AudioHandler::update() noexcept
     }
 
     ImGui::Text("Status: %s", status.c_str());
-
-    ImGui::Separator();
 
     ImGui::Separator();
 
@@ -299,6 +311,7 @@ void AudioHandler::stopAudio()
     if (running) {
         resetStates();
         rtAudio->stopStream();
+        rtAudio->closeStream();
     }
 
     running = false;
@@ -333,8 +346,8 @@ void AudioHandler::captureCallback(void* stream, size_t len)
     }
 
     for (auto i = 0ull; i + 1 < count; i += 2) {
-        auto reference = ptr[i + 0];
-        auto input = ptr[i + 1];
+        auto reference = ptr[i + (config.inputAndReferenceAreSwapped ? 1 : 0)];
+        auto input = ptr[i + (config.inputAndReferenceAreSwapped ? 0 : 1)];
         auto dReference = static_cast<double>(reference);
         auto dInput = static_cast<double>(input);
 

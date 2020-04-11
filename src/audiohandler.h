@@ -38,7 +38,7 @@ struct AudioConfig {
     RtAudio::StreamParameters playbackParams = {};
     RtAudio::StreamParameters captureParams = {};
     unsigned int bufferFrames = 512;
-
+    bool inputAndReferenceAreSwapped = false;
     [[nodiscard]] static std::vector<size_t> getPossibleAnalysisSampleRates() noexcept;
     double samplesToSeconds(size_t count) const noexcept;
     std::string sampleCountToString(size_t count) const noexcept;
