@@ -37,6 +37,21 @@ size_t findMax(const std::vector<T, Talloc>& in)
 }
 
 template <class T, class Talloc = std::allocator<T>>
+size_t findAbsMax(const std::vector<T, Talloc>& in)
+{
+    size_t max = 0;
+    double maxVal = 0.0;
+    for (size_t i = 0; i < in.size(); i++) {
+        if (maxVal < std::abs(in[i])) {
+            maxVal = std::abs(in[i]);
+            max = i;
+        }
+    }
+
+    return max;
+}
+
+template <class T, class Talloc = std::allocator<T>>
 size_t findMin(const std::vector<T, Talloc>& in)
 {
     size_t min = 0;

@@ -57,7 +57,10 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::AbsMax;
         auto clicked = Plot(
             sourceConfig,
-            [&data](size_t idx) {
+            [&data, this](size_t idx) {
+                if (showAbsValues) {
+                    return std::abs(data[idx]);
+                }
                 return data[idx];
             });
         if (clicked) {
@@ -78,7 +81,10 @@ void IrView::update(StateManager& stateManager, std::string idHint)
         sourceConfig.active = state.active;
         sourceConfig.antiAliasingBehaviour = AntiAliasingBehaviour::AbsMax;
         auto clicked = Plot(
-            sourceConfig, [&stateData](size_t idx) {
+            sourceConfig, [&stateData, this](size_t idx) {
+                if (showAbsValues) {
+                    return std::abs(stateData[idx]);
+                }
                 return stateData[idx];
             });
         if (clicked) {
@@ -105,8 +111,9 @@ void IrView::update(StateManager& stateManager, std::string idHint)
     float fRange = static_cast<float>(range);
     ImGui::SliderFloat("Range", &fRange, 0.0F, static_cast<float>(liveState.fftDuration), "%.3f", 5.0F);
     range = static_cast<double>(fRange);
+    ImGui::Checkbox("Show Absolute Values", &showAbsValues);
+    ImGui::SameLine();
     ImGui::Checkbox("Enable Smoothing", &smoothing);
-
     // now, marker selection
     ImGui::NextColumn();
     ImGui::SetColumnWidth(-1, size.x * 0.25F);
@@ -165,7 +172,7 @@ void IrView::clearRef() noexcept
 
 IrMarker makeMarkerFromPeak(const StateData& stateData)
 {
-    size_t index = findMax(stateData.impulseResponse);
+    size_t index = findAbsMax(stateData.impulseResponse);
     double yVal = stateData.impulseResponse[index];
     double xVal = stateData.fftDuration * static_cast<double>(index) / static_cast<double>(stateData.fftLen);
 
