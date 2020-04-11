@@ -17,7 +17,8 @@ cp build/cmake/laatool.exe build/package/
 cp ../LICENSE build/package/LICENCE.txt 
 cp ../3rdparty/thirdPartyNotes.txt build/package/
 cp ../3rdparty/imgui-cmake-blob/imgui/LICENSE.txt build/package/LICENSE.MIT.txt
-cp ../3rdparty/LICENSE.ZLIB.txt build/package/ 
+cp ../3rdparty/LICENSE.ZLIB.txt build/package/
+cp ../3rdparty/LICENCE.RtAudio.txt build/package
 
 # pack a zip
 zip -r build/package.zip build/package/

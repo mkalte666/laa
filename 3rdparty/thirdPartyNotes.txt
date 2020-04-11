@@ -17,6 +17,11 @@ https://gist.github.com/h0tw1r3/51084def72c9765a5d12
 Copyright: © 2015 Jeffrey Clark <https://github.com/h0tw1r3/>
 mingw-copy-deps.sh is licenced under GLPv3. See LICENSE.txt for more information.
 
+# rt audio
+https://github.com/thestk/rtaudio
+Copyright (c) 2001-2019 Gary P. Scavone
+see LICENCE.RtAudio.txt for the licence
+
 # SDL2
 https://www.libsdl.org/
 Copyright (C) 1997-2020 Sam Lantinga <slouken@libsdl.org>
