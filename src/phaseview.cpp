@@ -16,6 +16,7 @@
  */
 
 #include "phaseview.h"
+#include "midpointslider.h"
 void PhaseView::update(StateManager& stateManager, std::string idHint)
 {
     ImGui::BeginChild((idHint + "Phase").c_str());
@@ -33,8 +34,8 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
 
     plotConfig.label = "Mag";
 
-    plotConfig.xAxisConfig.min = static_cast<float>(min);
-    plotConfig.xAxisConfig.max = static_cast<float>(max);
+    plotConfig.xAxisConfig.min = min;
+    plotConfig.xAxisConfig.max = max;
     plotConfig.xAxisConfig.enableLogScale = true;
     plotConfig.xAxisConfig.gridInterval = 0.5;
     plotConfig.xAxisConfig.gridHint = 1000.0;
@@ -82,11 +83,11 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
 
     EndPlot();
 
-    ImGui::SliderFloat("min", &min, 30.0F, 20000.0F, "%.1f", 4.0F);
+    MidpointSlider("min##freq", 30.0, 20000.0, 1000.0, min);
     ImGui::SameLine();
-    min = std::clamp(min, 30.0F, 20000.0F);
-    ImGui::SliderFloat("max", &max, 30.0F, 20000.0F, "%.1f", 4.0F);
-    max = std::clamp(max, min, 20000.0F);
+    min = std::clamp(min, 30.0, 20000.0);
+    MidpointSlider("max##freq", 30.0, 20000.0, 1000.0, max);
+    max = std::clamp(max, min, 20000.0);
     ImGui::Checkbox("Enable Smoothing", &smoothing);
     ImGui::EndChild();
 }

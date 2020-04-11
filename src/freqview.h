@@ -25,8 +25,8 @@ public:
     void update(StateManager& stateManager, std::string idHint);
 
 private:
-    float min = 30.0F;
-    float max = 20000.0F;
+    double min = 30.0;
+    double max = 20000.0;
     bool smoothing = true;
 };
 
