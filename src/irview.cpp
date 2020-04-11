@@ -25,7 +25,8 @@ void IrView::update(StateManager& stateManager, std::string idHint)
 
     // begin with the plot
     ImGui::Columns(2);
-    ImGui::SetColumnWidth(-1, size.x * 0.75F);
+    auto plotWidth = size.x - 150.0F;
+    ImGui::SetColumnWidth(-1, plotWidth);
 
     const auto& liveState = stateManager.getLive();
     const auto& data = choose(smoothing, liveState.smoothedImpulseResponse, liveState.impulseResponse);
@@ -34,7 +35,7 @@ void IrView::update(StateManager& stateManager, std::string idHint)
 
     PlotConfig plotConfig;
     plotConfig.label = "IR View";
-    plotConfig.size = ImVec2(size.x * 0.7F, size.y * 0.8F);
+    plotConfig.size = ImVec2(plotWidth * 0.98F, size.y - 75.0F);
     plotConfig.yAxisConfig.min = -0.51;
     plotConfig.yAxisConfig.max = 0.51;
     plotConfig.yAxisConfig.gridInterval = 0.1;

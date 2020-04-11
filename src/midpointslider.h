@@ -50,4 +50,12 @@ void MidpointSlider(const std::string& label, const T& min, const T& max, const 
     value = fromSlider(min, max, mid, fVal);
 }
 
+template <class T>
+void VMidpointSlider(const std::string& label, const T& min, const T& max, const T& mid, T& value, const ImVec2& size)
+{
+    float fVal = toSlider(min, max, mid, value);
+    ImGui::VSliderFloat(label.c_str(), size, &fVal, 0.0F, 1.0F, std::to_string(value).c_str(), 1.0F);
+    value = fromSlider(min, max, mid, fVal);
+}
+
 #endif //laa_midpointslider_h

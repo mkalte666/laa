@@ -27,7 +27,7 @@ void SignalView::update(StateManager& stateManager, std::string idHint) noexcept
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
     plotConfig.label = "Signal";
-    plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.8F);
+    plotConfig.size = ImVec2(size.x * 0.98F, size.y - 75.0F);
     plotConfig.yAxisConfig.min = -1.05;
     plotConfig.yAxisConfig.max = 1.05;
     plotConfig.yAxisConfig.gridInterval = 0.25;

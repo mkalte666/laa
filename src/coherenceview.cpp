@@ -25,7 +25,7 @@ void CoherenceView::update(StateManager& stateManager, std::string idHint)
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
-    plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.8F);
+    plotConfig.size = ImVec2(size.x * 0.98F, size.y - 75.0F);
     plotConfig.yAxisConfig.min = 0.0;
     plotConfig.yAxisConfig.max = 1.0;
     plotConfig.yAxisConfig.gridInterval = .1;
@@ -73,11 +73,13 @@ void CoherenceView::update(StateManager& stateManager, std::string idHint)
 
     EndPlot();
 
+    ImGui::PushItemWidth(plotConfig.size.x / 3.0F);
     ImGui::SliderFloat("min", &min, 30.0F, 20000.0F, "%.1f", 4.0F);
     ImGui::SameLine();
     min = std::clamp(min, 30.0F, 20000.0F);
     ImGui::SliderFloat("max", &max, 30.0F, 20000.0F, "%.1f", 4.0F);
     max = std::clamp(max, min, 20000.0F);
+    ImGui::PopItemWidth();
     ImGui::Checkbox("Coherence Smoothing", &smoothing);
     ImGui::EndChild();
 }

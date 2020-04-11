@@ -28,7 +28,7 @@ void MagView::update(StateManager& stateManager, std::string idHint)
 
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
-    plotConfig.size = ImVec2(size.x * 0.9F, size.y * 0.8F);
+    plotConfig.size = ImVec2(size.x * 0.98F, size.y - 75.0F);
     plotConfig.yAxisConfig.min = 0.000001;
     plotConfig.yAxisConfig.max = 1.0;
     plotConfig.yAxisConfig.enableLogScale = true;
@@ -84,12 +84,13 @@ void MagView::update(StateManager& stateManager, std::string idHint)
     }
 
     EndPlot();
-
+    ImGui::PushItemWidth(plotConfig.size.x / 3.0F);
     MidpointSlider("min##freq", 30.0, 20000.0, 1000.0, min);
     ImGui::SameLine();
     min = std::clamp(min, 30.0, 20000.0);
     MidpointSlider("max##freq", 30.0, 20000.0, 1000.0, max);
     max = std::clamp(max, min, 20000.0);
+    ImGui::PopItemWidth();
     ImGui::Checkbox("Enable Smoothing", &smoothing);
     ImGui::EndChild();
 }
