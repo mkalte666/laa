@@ -130,7 +130,7 @@ AudioHandler::~AudioHandler() noexcept
 
 void AudioHandler::update() noexcept
 {
-    ImGui::Begin("Audio Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
+    ImGui::Begin("Audio Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::PushItemWidth(-1.0F);
     if (!running) {
         ImGui::Text("Driver");
