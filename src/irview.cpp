@@ -17,6 +17,7 @@
 
 #include "irview.h"
 #include "dsp/peak.h"
+#include "midpointslider.h"
 
 void IrView::update(StateManager& stateManager, std::string idHint)
 {
@@ -35,10 +36,13 @@ void IrView::update(StateManager& stateManager, std::string idHint)
 
     PlotConfig plotConfig;
     plotConfig.label = "IR View";
-    plotConfig.size = ImVec2(plotWidth * 0.98F, size.y - 75.0F);
-    plotConfig.yAxisConfig.min = -0.51;
-    plotConfig.yAxisConfig.max = 0.51;
+    plotConfig.size = ImVec2(plotWidth * 0.98F - 55.0F, size.y - 75.0F);
+    plotConfig.yAxisConfig.min = -yRange;
+    plotConfig.yAxisConfig.max = yRange;
     plotConfig.yAxisConfig.gridInterval = 0.1;
+    if (yRange <= 0.1) {
+        plotConfig.yAxisConfig.gridInterval = 0.01;
+    }
 
     plotConfig.xAxisConfig.min = -0.05F;
     plotConfig.xAxisConfig.max = range;
@@ -108,6 +112,10 @@ void IrView::update(StateManager& stateManager, std::string idHint)
     }
 
     EndPlot();
+
+    // vertical slider for plot y
+    ImGui::SameLine();
+    VMidpointSlider("##yRangeIR", 0.01, 2.0, 0.1, yRange, ImVec2(30.0F, plotConfig.size.y), [](double) { return std::string(); });
 
     float fRange = static_cast<float>(range);
     ImGui::SliderFloat("Range", &fRange, 0.0F, static_cast<float>(liveState.fftDuration), "%.3f", 5.0F);

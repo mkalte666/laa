@@ -34,7 +34,8 @@ public:
 
 private:
     void addMarker(const StateData& state, const PlotClickInfo& info) noexcept;
-    double range = 1.0F;
+    double range = 1.0;
+    double yRange = 0.51;
     bool smoothing = false;
     bool showAbsValues = false;
 
