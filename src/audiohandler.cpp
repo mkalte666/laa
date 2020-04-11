@@ -62,23 +62,19 @@ std::string getStr(const StateWindowFilter& filter) noexcept
 
 AudioHandler::AudioHandler() noexcept
 {
-    if (s2::Audio::getNumDevices(false) > 0) {
-        config.playbackName = s2::Audio::getDeviceName(0, false);
-    }
-
-    if (s2::Audio::getNumDevices(true) > 0) {
-        config.captureName = s2::Audio::getDeviceName(0, true);
-    }
-
-    if (s2::Audio::getNumDrivers() > 0) {
-        config.driver = s2::Audio::getDriver(0);
-    }
-
-    auto res = s2::Audio::init(config.driver.c_str());
-    if (!res) {
+    rtAudio = std::make_unique<RtAudio>();
+    if (rtAudio == nullptr) {
+        std::cout << "Could not start audio driver";
         SDL2WRAP_ASSERT(false);
     }
-    driverChosen = true;
+    if (auto deviceId = rtAudio->getDefaultOutputDevice(); deviceId != 0) {
+        config.device = rtAudio->getDeviceInfo(deviceId);
+    }
+
+    config.playbackParams.nChannels = 2;
+    config.playbackParams.firstChannel = 0;
+    config.captureParams.nChannels = 2;
+    config.captureParams.firstChannel = 0;
 
     // check if we have wisdom available
     auto pWisdomPath = SDL_GetPrefPath("mkalte", "laa");
@@ -90,7 +86,7 @@ AudioHandler::AudioHandler() noexcept
     }
     // populate state pool
     // due to the nature for fftw, this might take a while...
-    for (auto rate : AudioConfig::getPossibleAnalysisSampleRates()) {
+    for (auto rate : config.getPossibleAnalysisSampleRates()) {
         StatePoolArray pool;
         for (auto& state : pool) {
             state = new State(rate);
@@ -112,8 +108,7 @@ AudioHandler::AudioHandler() noexcept
 AudioHandler::~AudioHandler() noexcept
 {
     if (running) {
-        s2::Audio::closeDevice(captureId);
-        s2::Audio::closeDevice(playbackId);
+        rtAudio.reset();
     }
 
     // destroy thread
@@ -133,41 +128,38 @@ void AudioHandler::update() noexcept
     ImGui::Begin("Audio Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::PushItemWidth(-1.0F);
     if (!running) {
+
         ImGui::Text("Driver");
-        if (ImGui::BeginCombo("##Driver", config.driver.c_str())) {
-            for (int i = 0; i < s2::Audio::getNumDrivers(); i++) {
-                ImGui::PushID(i);
-                if (ImGui::Selectable(s2::Audio::getDriver(i))) {
-                    s2::Audio::quit();
-                    config.driver = s2::Audio::getDriver(i);
-                    auto res = s2::Audio::init(config.driver.c_str());
-                    SDL2WRAP_ASSERT(res.hasValue());
+        std::vector<RtAudio::Api> rtAudioApis;
+        RtAudio::getCompiledApi(rtAudioApis);
+        if (ImGui::BeginCombo("##apiSelect", RtAudio::getApiDisplayName(rtAudio->getCurrentApi()).c_str())) {
+            for (auto& api : rtAudioApis) {
+                if (ImGui::Selectable(RtAudio::getApiDisplayName(api).c_str(), api == rtAudio->getCurrentApi())) {
+                    rtAudio = std::make_unique<RtAudio>(api);
+                    if (rtAudio == nullptr) {
+                        rtAudio = std::make_unique<RtAudio>();
+                        if (rtAudio == nullptr) {
+                            SDL2WRAP_ASSERT(false);
+                        }
+                    }
+                    break;
                 }
-                ImGui::PopID();
             }
             ImGui::EndCombo();
         }
-
-        ImGui::Text("Playback Device");
-        if (ImGui::BeginCombo("##Playback Device", config.playbackName.c_str())) {
-            for (int i = 0; i < s2::Audio::getNumDevices(false); i++) {
-                std::string playbackName = s2::Audio::getDeviceName(i, false);
-                ImGui::PushID(i);
-                if (ImGui::Selectable(playbackName.c_str(), playbackName == config.playbackName)) {
-                    config.playbackName = playbackName;
+        ImGui::Text("Device ");
+        if (ImGui::BeginCombo("##Device", config.device.name.c_str())) {
+            for (unsigned int i = 0; i < rtAudio->getDeviceCount(); i++) {
+                auto device = rtAudio->getDeviceInfo(i);
+                if (device.duplexChannels < 2) {
+                    continue;
                 }
-                ImGui::PopID();
-            }
-            ImGui::EndCombo();
-        }
-
-        ImGui::Text("Capture Device");
-        if (ImGui::BeginCombo("##Capture Device", config.captureName.c_str())) {
-            for (int i = 0; i < s2::Audio::getNumDevices(true); i++) {
-                std::string captureName = s2::Audio::getDeviceName(i, true);
-                ImGui::PushID(i);
-                if (ImGui::Selectable(captureName.c_str(), captureName == config.captureName)) {
-                    config.captureName = captureName;
+                ImGui::PushID(static_cast<int>(i));
+                if (ImGui::Selectable(device.name.c_str(), device.name == config.device.name)) {
+                    config.device = device;
+                    config.sampleRate = config.device.preferredSampleRate;
+                    config.captureParams.deviceId = i;
+                    config.playbackParams.deviceId = i;
                 }
                 ImGui::PopID();
             }
@@ -176,24 +168,18 @@ void AudioHandler::update() noexcept
 
         ImGui::Text("Sample Rate");
         if (ImGui::BeginCombo("##Sample Rate", std::to_string(config.sampleRate).c_str())) {
-            if (ImGui::Selectable("44100", config.sampleRate == 44100)) {
-                config.sampleRate = 44100;
+            for (auto rate : config.device.sampleRates) {
+                ImGui::PushID(static_cast<int>(rate));
+                if (ImGui::Selectable(std::to_string(rate).c_str(), rate == config.sampleRate)) {
+                    config.sampleRate = rate;
+                }
+                ImGui::PopID();
             }
-            if (ImGui::Selectable("48000", config.sampleRate == 48000)) {
-                config.sampleRate = 48000;
-            }
-            if (ImGui::Selectable("96000", config.sampleRate == 96000)) {
-                config.sampleRate = 96000;
-            }
-            //if (ImGui::Selectable("192000", config.sampleRate == 192000)) {
-            //    config.sampleRate = 192000;
-            //}
             ImGui::EndCombo();
         }
+
     } else {
-        ImGui::Text("Driver: %s", config.driver.c_str());
-        ImGui::Text("Playback: %s", config.playbackName.c_str());
-        ImGui::Text("Capture: %s", config.captureName.c_str());
+        ImGui::Text("Device: %s", config.device.name.c_str());
         ImGui::Text("Sample Rate: %d", static_cast<int>(config.sampleRate));
     }
 
@@ -211,19 +197,6 @@ void AudioHandler::update() noexcept
     ImGui::Text("Status: %s", status.c_str());
 
     ImGui::Separator();
-
-    int refChan = static_cast<int>(config.referenceChannel);
-    int inputChan = static_cast<int>(config.inputChannel);
-
-    ImGui::Text("Reference Channel");
-    ImGui::InputInt("##refChan", &refChan, 1, 1);
-    refChan = std::clamp(refChan, 0, 1);
-    ImGui::Text("Input Channel");
-    ImGui::InputInt("##inputChan", &inputChan, 1, 1);
-    inputChan = std::clamp(inputChan, 0, 1);
-
-    config.referenceChannel = static_cast<size_t>(refChan);
-    config.inputChannel = static_cast<size_t>(inputChan);
 
     ImGui::Separator();
 
@@ -314,38 +287,8 @@ double AudioHandler::genNextPlaybackSample()
 void AudioHandler::startAudio()
 {
     stopAudio();
-
-    s2::Audio::Spec want;
-    SDL_zero(want);
-    want.freq = static_cast<int>(config.sampleRate);
-    want.format = AUDIO_S32SYS;
-    want.channels = 2;
-    want.samples = static_cast<Uint16>(config.samples);
-    want.userdata = this;
-
-    auto wantPlayback = want;
-    wantPlayback.callback = playbackCallbackStatic;
-    auto wantCapture = want;
-    wantCapture.callback = captureCallbackStatic;
-
-    s2::Audio::Spec gotPlayback;
-    auto playbackRes = s2::Audio::openDevice(config.playbackName.c_str(), false, wantPlayback, gotPlayback, static_cast<s2::AudioAllow>(0));
-    if (!playbackRes) {
-        status = playbackRes.getError().msg;
-        return;
-    }
-    playbackId = playbackRes.extractValue();
-    s2::Audio::pauseDevice(playbackId, false);
-
-    s2::Audio::Spec gotCapture;
-    auto captureRes = s2::Audio::openDevice(config.captureName.c_str(), true, wantCapture, gotCapture, static_cast<s2::AudioAllow>(0));
-    if (!captureRes) {
-        status = captureRes.getError().msg;
-        s2::Audio::closeDevice(playbackId);
-        return;
-    }
-    captureId = captureRes.extractValue();
-    s2::Audio::pauseDevice(captureId, false);
+    rtAudio->openStream(&config.captureParams, &config.playbackParams, RTAUDIO_FLOAT32, config.sampleRate, &config.bufferFrames, &rtAudioCallback, this);
+    rtAudio->startStream();
 
     running = true;
     status = std::string("Running (") + s2::Audio::getCurrentDriver() + ")";
@@ -355,78 +298,82 @@ void AudioHandler::stopAudio()
 {
     if (running) {
         resetStates();
-        s2::Audio::closeDevice(captureId);
-        s2::Audio::closeDevice(playbackId);
+        rtAudio->stopStream();
     }
 
     running = false;
 }
 
-void AudioHandler::playbackCallback(Uint8* stream, int len)
+void AudioHandler::playbackCallback(void* stream, size_t len)
 {
-    auto count = static_cast<size_t>(len) / sizeof(Sint32);
-    auto* ptr = reinterpret_cast<Sint32*>(stream);
+    auto count = static_cast<size_t>(len) / sizeof(float);
+    auto* ptr = reinterpret_cast<float*>(stream);
     for (auto i = 0ull; i + 1 < count; i += 2) {
-        double f = config.outputVolume * genNextPlaybackSample() * SDL_MAX_SINT32;
+        auto f = config.outputVolume * genNextPlaybackSample();
 
-        ptr[i] = static_cast<Sint32>(f);
-        ptr[i + 1] = static_cast<Sint32>(f);
+        ptr[i] = static_cast<float>(f);
+        ptr[i + 1] = static_cast<float>(f);
     }
 }
 
-void AudioHandler::captureCallback(Uint8* stream, int len)
+void AudioHandler::captureCallback(void* stream, size_t len)
 {
-    auto count = static_cast<size_t>(len) / sizeof(Sint32);
-    auto* ptr = reinterpret_cast<Sint32*>(stream);
+    auto count = static_cast<size_t>(len) / sizeof(float);
+    auto* ptr = reinterpret_cast<float*>(stream);
     if (captureState == nullptr) {
+        callbackLock.lock();
         if (unusedStates.empty()) {
+            callbackLock.unlock();
             return;
         }
 
         captureState = unusedStates.front();
         unusedStates.pop();
+        callbackLock.unlock();
     }
 
     for (auto i = 0ull; i + 1 < count; i += 2) {
-        auto reference = ptr[i + config.referenceChannel];
-        auto input = ptr[i + config.inputChannel];
-        auto dReference = static_cast<double>(reference) / static_cast<double>(SDL_MAX_SINT32);
-        auto dInput = static_cast<double>(input) / static_cast<double>(SDL_MAX_SINT32);
+        auto reference = ptr[i + 0];
+        auto input = ptr[i + 1];
+        auto dReference = static_cast<double>(reference);
+        auto dInput = static_cast<double>(input);
 
         captureState->accessData().reference[sampleCount] = dReference;
         captureState->accessData().input[sampleCount] = dInput;
         ++sampleCount;
 
         if (sampleCount >= config.analysisSamples) {
+            callbackLock.lock();
             ++frameCount;
             sampleCount = 0;
             processStates.push(captureState);
             captureState = nullptr;
 
             if (unusedStates.empty()) {
+                callbackLock.unlock();
                 return;
             }
             captureState = unusedStates.front();
             unusedStates.pop();
+            callbackLock.unlock();
         }
     }
 }
 
-void AudioHandler::playbackCallbackStatic(void* userdata, Uint8* stream, int len)
+int AudioHandler::rtAudioCallback(void* outputBuffer, void* inputBuffer, unsigned int nFrames, double, RtAudioStreamStatus, void* userData)
 {
-    reinterpret_cast<AudioHandler*>(userdata)->playbackCallback(stream, len);
-}
-
-void AudioHandler::captureCallbackStatic(void* userdata, Uint8* stream, int len)
-{
-    reinterpret_cast<AudioHandler*>(userdata)->captureCallback(stream, len);
+    auto* handler = reinterpret_cast<AudioHandler*>(userData);
+    handler->captureCallback(inputBuffer, nFrames * 2 * sizeof(float));
+    handler->playbackCallback(outputBuffer, nFrames * 2 * sizeof(float));
+    return 0;
 }
 
 void AudioHandler::resetStates() noexcept
 {
     // halt the audio world
     processingLock.lock();
-    s2::Audio::lockDevice(captureId);
+
+    callbackLock.lock();
     // clear them all
     doneState = nullptr;
     captureState = nullptr;
@@ -439,7 +386,7 @@ void AudioHandler::resetStates() noexcept
     }
 
     // can run again
-    s2::Audio::unlockDevice(captureId);
+    callbackLock.unlock();
     processingLock.unlock();
 }
 
@@ -456,11 +403,11 @@ StateData AudioHandler::getStateData() const noexcept
     }
 
     processingLock.lock();
-    s2::Audio::lockDevice(captureId);
+    callbackLock.lock();
 
     copy = doneState->getData();
 
-    s2::Audio::unlockDevice(captureId);
+    callbackLock.unlock();
     processingLock.unlock();
 
     copy.sampleRate = static_cast<double>(config.sampleRate);
@@ -479,12 +426,12 @@ void AudioHandler::processingWorker() noexcept
     while (!terminateThreads) {
         std::this_thread::sleep_for(5ms);
         State* current = nullptr;
-        s2::Audio::lockDevice(captureId);
+        callbackLock.lock();
         if (!processStates.empty()) {
             current = processStates.front();
             processStates.pop();
         }
-        s2::Audio::unlockDevice(captureId);
+        callbackLock.unlock();
 
         if (current == nullptr) {
             continue;
@@ -496,9 +443,9 @@ void AudioHandler::processingWorker() noexcept
         // advance the doneState
         processingLock.lock();
         if (doneState != nullptr) {
-            s2::Audio::lockDevice(captureId);
+            callbackLock.lock();
             unusedStates.push(doneState);
-            s2::Audio::unlockDevice(captureId);
+            callbackLock.unlock();
         }
         doneState = current;
         processingLock.unlock();

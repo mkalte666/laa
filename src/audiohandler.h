@@ -26,18 +26,18 @@
 #include <map>
 #include <mutex>
 #include <queue>
+#include <rtaudio/RtAudio.h>
 #include <thread>
 
 struct AudioConfig {
-    double outputVolume = 1.0;
-    std::string driver = "";
-    std::string captureName = "None";
-    std::string playbackName = "None";
-    size_t referenceChannel = 0;
-    size_t inputChannel = 1;
-    size_t sampleRate = 48000;
-    size_t samples = 4096;
+
+    RtAudio::DeviceInfo device;
+    unsigned int sampleRate = 48000;
     size_t analysisSamples = 32768;
+    double outputVolume = 1.0;
+    RtAudio::StreamParameters playbackParams = {};
+    RtAudio::StreamParameters captureParams = {};
+    unsigned int bufferFrames = 512;
 
     [[nodiscard]] static std::vector<size_t> getPossibleAnalysisSampleRates() noexcept;
     double samplesToSeconds(size_t count) const noexcept;
@@ -73,18 +73,16 @@ private:
 
     void startAudio();
     void stopAudio();
-    void playbackCallback(Uint8* stream, int len);
-    void captureCallback(Uint8* stream, int len);
-    static void playbackCallbackStatic(void* userdata, Uint8* stream, int len);
-    static void captureCallbackStatic(void* userdata, Uint8* stream, int len);
+    void playbackCallback(void* stream, size_t len);
+    void captureCallback(void* stream, size_t len);
+    static int rtAudioCallback(void* outputBuffer, void* inputBuffer, unsigned int nFrames, double, RtAudioStreamStatus, void* userData);
     void resetStates() noexcept;
 
     AudioConfig config = {};
-    bool driverChosen = false;
+    std::unique_ptr<RtAudio> rtAudio = {};
     std::string status = "Not Started";
     bool running = false;
-    s2::Audio::DeviceID captureId = {};
-    s2::Audio::DeviceID playbackId = {};
+
     PinkNoiseGenerator pinkNoise = {};
     SineGenerator sineGenerator = {};
     FunctionGeneratorType functionGeneratorType = FunctionGeneratorType::Silence;
@@ -94,6 +92,7 @@ private:
     std::map<size_t, StatePoolArray> statePool = {};
     std::thread dataProcessor = {};
     bool terminateThreads = false;
+    mutable std::mutex callbackLock = {};
     mutable std::mutex processingLock = {};
     std::queue<State*> unusedStates = {};
     size_t sampleCount = 0;
