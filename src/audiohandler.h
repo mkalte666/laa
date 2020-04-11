@@ -31,7 +31,8 @@
 
 struct AudioConfig {
 
-    RtAudio::DeviceInfo device;
+    RtAudio::DeviceInfo captureDevice = {};
+    RtAudio::DeviceInfo playbackDevice = {};
     unsigned int sampleRate = 48000;
     size_t analysisSamples = 32768;
     double outputVolume = 1.0;

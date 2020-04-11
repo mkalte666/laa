@@ -67,10 +67,11 @@ AudioHandler::AudioHandler() noexcept
         std::cout << "Could not start audio driver";
         SDL2WRAP_ASSERT(false);
     }
-    if (auto deviceId = rtAudio->getDefaultOutputDevice(); deviceId != 0) {
-        config.device = rtAudio->getDeviceInfo(deviceId);
-    }
 
+    config.captureDevice = rtAudio->getDeviceInfo(rtAudio->getDefaultInputDevice());
+    config.playbackDevice = rtAudio->getDeviceInfo(rtAudio->getDefaultOutputDevice());
+    config.playbackParams.deviceId = rtAudio->getDefaultOutputDevice();
+    config.captureParams.deviceId = rtAudio->getDefaultInputDevice();
     config.playbackParams.nChannels = 2;
     config.playbackParams.firstChannel = 0;
     config.captureParams.nChannels = 2;
@@ -128,7 +129,6 @@ void AudioHandler::update() noexcept
     ImGui::Begin("Audio Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::PushItemWidth(-1.0F);
     if (!running) {
-
         ImGui::Text("Driver");
         std::vector<RtAudio::Api> rtAudioApis;
         RtAudio::getCompiledApi(rtAudioApis);
@@ -142,23 +142,42 @@ void AudioHandler::update() noexcept
                             SDL2WRAP_ASSERT(false);
                         }
                     }
+                    config.captureDevice = rtAudio->getDeviceInfo(rtAudio->getDefaultInputDevice());
+                    config.playbackDevice = rtAudio->getDeviceInfo(rtAudio->getDefaultOutputDevice());
+                    config.playbackParams.deviceId = rtAudio->getDefaultOutputDevice();
+                    config.captureParams.deviceId = rtAudio->getDefaultInputDevice();
                     break;
                 }
             }
             ImGui::EndCombo();
         }
-        ImGui::Text("Device ");
-        if (ImGui::BeginCombo("##Device", config.device.name.c_str())) {
+        ImGui::Text("Capture Device");
+        if (ImGui::BeginCombo("##CapDevice", config.captureDevice.name.c_str())) {
             for (unsigned int i = 0; i < rtAudio->getDeviceCount(); i++) {
                 auto device = rtAudio->getDeviceInfo(i);
-                if (device.duplexChannels < 2 || device.inputChannels < 2 || device.outputChannels < 2) {
+                if (device.inputChannels < 2) {
                     continue;
                 }
                 ImGui::PushID(static_cast<int>(i));
-                if (ImGui::Selectable(device.name.c_str(), device.name == config.device.name)) {
-                    config.device = device;
-                    config.sampleRate = config.device.preferredSampleRate;
+                if (ImGui::Selectable(device.name.c_str(), device.name == config.captureDevice.name)) {
+                    config.captureDevice = device;
+                    config.sampleRate = config.captureDevice.preferredSampleRate;
                     config.captureParams.deviceId = i;
+                }
+                ImGui::PopID();
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::Text("Playback Device");
+        if (ImGui::BeginCombo("##PbDevice", config.playbackDevice.name.c_str())) {
+            for (unsigned int i = 0; i < rtAudio->getDeviceCount(); i++) {
+                auto device = rtAudio->getDeviceInfo(i);
+                if (device.outputChannels < 2) {
+                    continue;
+                }
+                ImGui::PushID(static_cast<int>(i));
+                if (ImGui::Selectable(device.name.c_str(), device.name == config.playbackDevice.name)) {
+                    config.playbackDevice = device;
                     config.playbackParams.deviceId = i;
                 }
                 ImGui::PopID();
@@ -168,7 +187,7 @@ void AudioHandler::update() noexcept
 
         ImGui::Text("Sample Rate");
         if (ImGui::BeginCombo("##Sample Rate", std::to_string(config.sampleRate).c_str())) {
-            for (auto rate : config.device.sampleRates) {
+            for (auto rate : config.captureDevice.sampleRates) {
                 ImGui::PushID(static_cast<int>(rate));
                 if (ImGui::Selectable(std::to_string(rate).c_str(), rate == config.sampleRate)) {
                     config.sampleRate = rate;
@@ -185,10 +204,11 @@ void AudioHandler::update() noexcept
         ImGui::Checkbox("Swap Reference", &config.inputAndReferenceAreSwapped);
         ImGui::Text("First Playback");
         ImGui::InputInt("##firstPlayback", &iFirstPlayback, 1, 1);
-        config.playbackParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstPlayback), 0u, config.device.outputChannels - 2);
-        config.captureParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstCapture), 0u, config.device.inputChannels - 2);
+        config.playbackParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstPlayback), 0u, config.playbackDevice.outputChannels - 2);
+        config.captureParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstCapture), 0u, config.captureDevice.inputChannels - 2);
     } else {
-        ImGui::Text("Device: %s", config.device.name.c_str());
+        ImGui::Text("Capture Device: %s", config.captureDevice.name.c_str());
+        ImGui::Text("Playback Device: %s", config.playbackDevice.name.c_str());
         ImGui::Text("Sample Rate: %d", static_cast<int>(config.sampleRate));
         ImGui::Text("First Playback: %d", static_cast<int>(config.playbackParams.firstChannel));
         ImGui::Text("First Capture: %d", static_cast<int>(config.playbackParams.firstChannel));
@@ -269,8 +289,8 @@ void AudioHandler::update() noexcept
     }
     ImGui::Text("FFT Averaging");
     auto iAvgCount = static_cast<int>(stateFilterConfig.avgCount);
-    ImGui::InputInt("##avgCount", &iAvgCount, 1, LAA_MAX_FFT_AVG);
-    stateFilterConfig.avgCount = std::clamp(static_cast<size_t>(iAvgCount), static_cast<size_t>(0), LAA_MAX_FFT_LENGTH);
+    ImGui::InputInt("##avgCount", &iAvgCount, 1, 1);
+    stateFilterConfig.avgCount = std::clamp(static_cast<size_t>(iAvgCount), static_cast<size_t>(0), LAA_MAX_FFT_AVG);
     if (ImGui::Button("Reset Avg")) {
         stateFilterConfig.clearAvg();
     }
