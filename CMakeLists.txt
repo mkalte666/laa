@@ -30,6 +30,8 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_CXX_STANDARD 17)
 project(LAA)
 
+cmake_policy(SET CMP0072 NEW)
+
 add_subdirectory(3rdparty/sdl2wrap)
 set(imguiIncludeDir ${CMAKE_SOURCE_DIR}/3rdparty/imgui-cmake-blob/imgui/ CACHE PATH "Path to imgui headers")
 add_subdirectory(3rdparty/imgui-cmake-blob)
