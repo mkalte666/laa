@@ -20,6 +20,7 @@
 
 #include "dsp/pinknoisegenerator.h"
 #include "dsp/sinegenerator.h"
+#include "dsp/sweepgenerator.h"
 #include "shared.h"
 #include "state.h"
 
@@ -50,7 +51,8 @@ enum class FunctionGeneratorType {
     Silence,
     WhiteNoise,
     PinkNoise,
-    Sine
+    Sine,
+    Sweep
 };
 std::string getStr(const FunctionGeneratorType& gen) noexcept;
 
@@ -87,6 +89,7 @@ private:
 
     PinkNoiseGenerator pinkNoise = {};
     SineGenerator sineGenerator = {};
+    SweepGenerator sweepGenerator = {};
     FunctionGeneratorType functionGeneratorType = FunctionGeneratorType::Silence;
 
     void processingWorker() noexcept;

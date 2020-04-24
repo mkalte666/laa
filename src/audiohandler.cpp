@@ -41,6 +41,9 @@ std::string getStr(const FunctionGeneratorType& gen) noexcept
 
     case FunctionGeneratorType::Sine:
         return "Sine";
+
+    case FunctionGeneratorType::Sweep:
+        return "Sweep";
     }
 
     return "";
@@ -191,6 +194,9 @@ void AudioHandler::update() noexcept
                 ImGui::PushID(static_cast<int>(rate));
                 if (ImGui::Selectable(std::to_string(rate).c_str(), rate == config.sampleRate)) {
                     config.sampleRate = rate;
+                    // make the generators have the right rate
+                    sineGenerator.setSampleRate(config.sampleRate);
+                    sweepGenerator.setSampleRate(config.sampleRate);
                 }
                 ImGui::PopID();
             }
@@ -246,7 +252,9 @@ void AudioHandler::update() noexcept
         if (ImGui::Selectable(getStr(FunctionGeneratorType::PinkNoise).c_str(), functionGeneratorType == FunctionGeneratorType::PinkNoise)) {
             functionGeneratorType = FunctionGeneratorType::PinkNoise;
         }
-
+        if (ImGui::Selectable(getStr(FunctionGeneratorType::Sweep).c_str(), functionGeneratorType == FunctionGeneratorType::Sweep)) {
+            functionGeneratorType = FunctionGeneratorType::Sweep;
+        }
         ImGui::EndCombo();
     }
 
@@ -267,6 +275,7 @@ void AudioHandler::update() noexcept
             ImGui::PushID(static_cast<int>(rate));
             if (ImGui::Selectable(config.sampleCountToString(rate).c_str(), rate == config.analysisSamples)) {
                 config.analysisSamples = rate;
+                sweepGenerator.setLength(static_cast<double>(config.analysisSamples) / config.sampleRate);
                 resetStates();
             }
             ImGui::PopID();
@@ -310,6 +319,8 @@ double AudioHandler::genNextPlaybackSample()
         return (pinkNoise.nextSample());
     case FunctionGeneratorType::Sine:
         return (sineGenerator.nextSample());
+    case FunctionGeneratorType::Sweep:
+        return sweepGenerator.nextSample();
         break;
     }
 
@@ -318,6 +329,10 @@ double AudioHandler::genNextPlaybackSample()
 
 void AudioHandler::startAudio()
 {
+    // make sure the generators have the right rate
+    sineGenerator.setSampleRate(config.sampleRate);
+    sweepGenerator.setSampleRate(config.sampleRate);
+    sweepGenerator.setLength(static_cast<double>(config.analysisSamples) / config.sampleRate);
     stopAudio();
     rtAudio->openStream(&config.playbackParams, &config.captureParams, RTAUDIO_FLOAT32, config.sampleRate, &config.bufferFrames, &rtAudioCallback, this);
     rtAudio->startStream();
