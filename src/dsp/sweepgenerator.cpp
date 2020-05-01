@@ -23,11 +23,15 @@ double SweepGenerator::nextSample() noexcept
     double res = std::sin(phi);
     phi += dt;
     currFreq += df;
-    dt = 2.0 * M_PI * currFreq / sampleRate;
 
-    if (currFreq >= fmax) {
+    double expFreq = std::pow(fmax / fmin, (currFreq - fmin) / (fmax - fmin)) * fmin;
+
+    dt = 2.0 * M_PI * expFreq / sampleRate;
+
+    if (expFreq >= fmax || currFreq > fmax) {
         reset();
     }
+
     return res;
 }
 
@@ -51,9 +55,10 @@ void SweepGenerator::setLength(double newLength) noexcept
 void SweepGenerator::reset() noexcept
 {
     fmin = 30.0;
-    fmax = std::min(20000.0, sampleRate / 2.0);
+    fmax = sampleRate / 2.0;
     phi = 0.0;
     currFreq = fmin;
-    dt = 2.0 * M_PI * currFreq;
+    double expFreq = std::pow(fmax / fmin, (currFreq - fmin) / (fmax - fmin)) * fmin;
+    dt = 2.0 * M_PI * expFreq / sampleRate;
     df = (fmax - fmin) / (sampleRate * length);
 }
