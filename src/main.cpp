@@ -115,6 +115,17 @@ int main(int, char**)
         glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT
 
+        // make sure window size is not null
+        // sadly window.setminsize can and is ingored by some wm on linux
+        int windowW = 0;
+        int windowH = 0;
+        window.getSize(windowW, windowH);
+        if (windowW < 320 || windowH < 240) {
+            windowW = std::max(320, windowW);
+            windowH = std::max(240, windowH);
+            window.setSize(windowW, windowH);
+        }
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window.get());
         ImGui::NewFrame();
