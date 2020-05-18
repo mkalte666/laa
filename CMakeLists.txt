@@ -65,7 +65,7 @@ add_executable(laatool
         src/irview.cpp
         src/irview.h
         src/phaseview.cpp
-        src/phaseview.h src/freqview.cpp src/freqview.h src/state.cpp src/state.h src/version.h src/dsp/smoothing.h src/dsp/peak.h src/coherenceview.cpp src/coherenceview.h src/midpointslider.h src/dsp/sweepgenerator.cpp src/dsp/sweepgenerator.h src/audio/audioconfig.cpp src/audio/audioconfig.h)
+        src/phaseview.h src/freqview.cpp src/freqview.h src/state.cpp src/state.h src/version.h src/dsp/smoothing.h src/dsp/peak.h src/coherenceview.cpp src/coherenceview.h src/midpointslider.h src/dsp/sweepgenerator.cpp src/dsp/sweepgenerator.h src/audio/audioconfig.cpp src/audio/audioconfig.h src/audio/audiohandler_ui.cpp src/audio/audiohandler_processing.cpp)
 
 enableStrictOptions(laatool)
 

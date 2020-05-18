@@ -42,7 +42,7 @@ struct AudioConfig {
     /// Sample Rate
     unsigned int sampleRate = defaultSampleRate;
     /// Analysis Sampe Count
-    size_t analysisSamples = analysisSamples;
+    size_t analysisSamples = defaultAnalysisSamples;
     /// Output Volume
     double outputVolume = 1.0;
 
