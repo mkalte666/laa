@@ -22,8 +22,8 @@
 #include "dsp/windows.h"
 #include "shared.h"
 
-static constexpr size_t LAA_MAX_FFT_LENGTH = 65536;
-static constexpr size_t LAA_MIN_FFT_LENGTH = 512;
+static constexpr size_t LAA_MAX_FFT_LENGTH = 131072;
+static constexpr size_t LAA_MIN_FFT_LENGTH = 1024;
 static constexpr size_t LAA_MAX_FFT_AVG = 8;
 
 enum class StateWindowFilter {
