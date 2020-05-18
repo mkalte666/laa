@@ -28,12 +28,12 @@ public:
 private:
     double fmin = 30.0;
     double fmax = 20000;
-    double phi = 0.0;
-    double currFreq = 0.0;
-    double dt = 0.0;
-    double df = 0.0;
     double sampleRate = 0.0;
     double length = 0.0;
+
+    long counter = 0;
+    double K = 1.0;
+    double L = 1.0;
 };
 
 #endif //laa_sweepgenerator_h

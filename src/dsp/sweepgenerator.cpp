@@ -18,17 +18,19 @@
 #include "sweepgenerator.h"
 #include <cmath>
 
+// https://ieeexplore.ieee.org/document/4813749
+
 double SweepGenerator::nextSample() noexcept
 {
-    double res = std::sin(phi);
-    phi += dt;
-    currFreq += df;
+    ++counter;
+    double t = static_cast<double>(counter) / sampleRate;
+    auto w = K / L * std::exp(t / L);
+    // paper assumes n(0) = 1, but we dont want that as we want to stay in 0..1
+    // nicer would be n(T) = 1. solve that =>
+    auto n = std::sqrt(w / (2 * M_PI * fmax));
+    auto res = n * std::sin(K * (std::exp(t / L) - 1.0));
 
-    double expFreq = std::pow(fmax / fmin, (currFreq - fmin) / (fmax - fmin)) * fmin;
-
-    dt = 2.0 * M_PI * expFreq / sampleRate;
-
-    if (expFreq >= fmax || currFreq > fmax) {
+    if (t > length) {
         reset();
     }
 
@@ -55,10 +57,12 @@ void SweepGenerator::setLength(double newLength) noexcept
 void SweepGenerator::reset() noexcept
 {
     fmin = 30.0;
-    fmax = 20000;
-    phi = 0.0;
-    currFreq = fmin;
-    double expFreq = std::pow(fmax / fmin, (currFreq - fmin) / (fmax - fmin)) * fmin;
-    dt = 2.0 * M_PI * expFreq / sampleRate;
-    df = (fmax - fmin) / (sampleRate * length);
+    fmax = sampleRate / 2;
+
+    counter = 0;
+
+    // K = T * w1 / (ln(w2/w1)
+    K = length * (fmin * 2.0 * M_PI) / std::log(fmax / fmin);
+    // L = T / ln(w1/w1)
+    L = length / std::log(fmax / fmin);
 }
