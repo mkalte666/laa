@@ -59,7 +59,7 @@ void AudioHandler::update() noexcept
     ImGui::Begin("Audio Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::PushItemWidth(-1.0F);
     if (!running) {
-        ImGui::Text("Driver");
+        ImGui::TextWrapped("Driver");
         std::vector<RtAudio::Api> rtAudioApis;
         RtAudio::getCompiledApi(rtAudioApis);
         if (ImGui::BeginCombo("##apiSelect", RtAudio::getApiDisplayName(rtAudio->getCurrentApi()).c_str())) {
@@ -81,7 +81,7 @@ void AudioHandler::update() noexcept
             }
             ImGui::EndCombo();
         }
-        ImGui::Text("Capture Device");
+        ImGui::TextWrapped("Capture Device");
         if (ImGui::BeginCombo("##CapDevice", config.captureDevice.name.c_str())) {
             for (unsigned int i = 0; i < rtAudio->getDeviceCount(); i++) {
                 auto device = rtAudio->getDeviceInfo(i);
@@ -98,7 +98,7 @@ void AudioHandler::update() noexcept
             }
             ImGui::EndCombo();
         }
-        ImGui::Text("Playback Device");
+        ImGui::TextWrapped("Playback Device");
         if (ImGui::BeginCombo("##PbDevice", config.playbackDevice.name.c_str())) {
             for (unsigned int i = 0; i < rtAudio->getDeviceCount(); i++) {
                 auto device = rtAudio->getDeviceInfo(i);
@@ -115,7 +115,7 @@ void AudioHandler::update() noexcept
             ImGui::EndCombo();
         }
 
-        ImGui::Text("Sample Rate");
+        ImGui::TextWrapped("Sample Rate");
         if (ImGui::BeginCombo("##Sample Rate", std::to_string(config.sampleRate).c_str())) {
             for (auto rate : config.getLegalSampleRates()) {
                 ImGui::PushID(static_cast<int>(rate));
@@ -132,21 +132,21 @@ void AudioHandler::update() noexcept
 
         int iFirstPlayback = static_cast<int>(config.playbackParams.firstChannel);
         int iFirstCapture = static_cast<int>(config.captureParams.firstChannel);
-        ImGui::Text("First Capture");
+        ImGui::TextWrapped("First Capture");
         ImGui::InputInt("##firstCap", &iFirstCapture, 1, 1);
         ImGui::Checkbox("Swap Reference", &config.inputAndReferenceAreSwapped);
-        ImGui::Text("First Playback");
+        ImGui::TextWrapped("First Playback");
         ImGui::InputInt("##firstPlayback", &iFirstPlayback, 1, 1);
         config.playbackParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstPlayback), 0u, config.playbackDevice.outputChannels - 2);
         config.captureParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstCapture), 0u, config.captureDevice.inputChannels - 2);
     } else {
-        ImGui::Text("Capture Device: %s", config.captureDevice.name.c_str());
-        ImGui::Text("Playback Device: %s", config.playbackDevice.name.c_str());
-        ImGui::Text("Sample Rate: %d", static_cast<int>(config.sampleRate));
-        ImGui::Text("First Playback: %d", static_cast<int>(config.playbackParams.firstChannel));
-        ImGui::Text("First Capture: %d", static_cast<int>(config.playbackParams.firstChannel));
+        ImGui::TextWrapped("Capture Device: %s", config.captureDevice.name.c_str());
+        ImGui::TextWrapped("Playback Device: %s", config.playbackDevice.name.c_str());
+        ImGui::TextWrapped("Sample Rate: %d", static_cast<int>(config.sampleRate));
+        ImGui::TextWrapped("First Playback: %d", static_cast<int>(config.playbackParams.firstChannel));
+        ImGui::TextWrapped("First Capture: %d", static_cast<int>(config.playbackParams.firstChannel));
         if (config.inputAndReferenceAreSwapped) {
-            ImGui::Text("Input and Ref Swapped!");
+            ImGui::TextWrapped("Input and Ref Swapped!");
         }
     }
 
@@ -161,11 +161,11 @@ void AudioHandler::update() noexcept
         }
     }
 
-    ImGui::Text("Status: %s", status.c_str());
+    ImGui::TextWrapped("Status: %s", status.c_str());
 
     ImGui::Separator();
 
-    ImGui::Text("Select Signal");
+    ImGui::TextWrapped("Select Signal");
     if (ImGui::BeginCombo("##Select Signal", getStr(functionGeneratorType).c_str())) {
         if (ImGui::Selectable(getStr(FunctionGeneratorType::Silence).c_str(), functionGeneratorType == FunctionGeneratorType::Silence)) {
             functionGeneratorType = FunctionGeneratorType::Silence;
@@ -184,19 +184,22 @@ void AudioHandler::update() noexcept
         }
         ImGui::EndCombo();
     }
+    if (functionGeneratorType == FunctionGeneratorType::Sweep && stateFilterConfig.windowFilter != StateWindowFilter::None) {
+        ImGui::TextWrapped("Disable Window Filter for Sweep!");
+    }
 
     if (functionGeneratorType == FunctionGeneratorType::Sine) {
         auto freq = static_cast<float>(sineGenerator.getFrequency());
-        ImGui::Text("Frequency");
+        ImGui::TextWrapped("Frequency");
         if (ImGui::SliderFloat("##Frequency", &freq, 0.0F, 20000.0F, "%.0f", 1.0F)) {
             sineGenerator.setFrequency(static_cast<double>(freq));
         }
     }
-    ImGui::Text("Output Volume");
+    ImGui::TextWrapped("Output Volume");
     MidpointSlider("##volime", 0.0, 1.0, 0.5, config.outputVolume);
 
     ImGui::Separator();
-    ImGui::Text("Analysis Length");
+    ImGui::TextWrapped("Analysis Length");
     if (ImGui::BeginCombo("##Analysis Length", config.sampleCountToString(config.analysisSamples).c_str())) {
         for (auto&& rate : config.getPossibleAnalysisSampleRates()) {
             ImGui::PushID(static_cast<int>(rate));
@@ -210,7 +213,7 @@ void AudioHandler::update() noexcept
 
         ImGui::EndCombo();
     }
-    ImGui::Text("Window Filter");
+    ImGui::TextWrapped("Window Filter");
     if (ImGui::BeginCombo("##Window Config", getStr(stateFilterConfig.windowFilter).c_str())) {
         if (ImGui::Selectable("None", stateFilterConfig.windowFilter == StateWindowFilter::None)) {
             stateFilterConfig.windowFilter = StateWindowFilter::None;
@@ -223,7 +226,7 @@ void AudioHandler::update() noexcept
         }
         ImGui::EndCombo();
     }
-    ImGui::Text("FFT Averaging");
+    ImGui::TextWrapped("FFT Averaging");
     auto iAvgCount = static_cast<int>(stateFilterConfig.avgCount);
     ImGui::InputInt("##avgCount", &iAvgCount, 1, 1);
     stateFilterConfig.avgCount = std::clamp(static_cast<size_t>(iAvgCount), static_cast<size_t>(0), LAA_MAX_FFT_AVG);
