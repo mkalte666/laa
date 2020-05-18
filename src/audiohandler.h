@@ -18,34 +18,15 @@
 #ifndef laa_audiohandler_h
 #define laa_audiohandler_h
 
+#include "audioconfig.h"
 #include "dsp/pinknoisegenerator.h"
 #include "dsp/sinegenerator.h"
 #include "dsp/sweepgenerator.h"
-#include "shared.h"
-#include "state.h"
 
 #include <map>
 #include <mutex>
 #include <queue>
-#include <rtaudio/RtAudio.h>
 #include <thread>
-
-struct AudioConfig {
-
-    RtAudio::DeviceInfo captureDevice = {};
-    RtAudio::DeviceInfo playbackDevice = {};
-    unsigned int sampleRate = 48000;
-    size_t analysisSamples = 32768;
-    double outputVolume = 1.0;
-    RtAudio::StreamParameters playbackParams = {};
-    RtAudio::StreamParameters captureParams = {};
-    unsigned int bufferFrames = 512;
-    bool inputAndReferenceAreSwapped = false;
-    [[nodiscard]] static std::vector<size_t> getPossibleAnalysisSampleRates() noexcept;
-    double samplesToSeconds(size_t count) const noexcept;
-    std::string sampleCountToString(size_t count) const noexcept;
-    [[nodiscard]] std::vector<unsigned int> getLegalSampleRates() noexcept;
-};
 
 enum class FunctionGeneratorType {
     Silence,
