@@ -20,9 +20,10 @@
 #include <filesystem> // exsists
 namespace fs = std::filesystem;
 
-void clearStateQueue(std::queue<State*>& q)
+template <class T>
+void clearStateQueue(std::queue<T>& q)
 {
-    std::queue<State*> empty;
+    std::queue<T> empty;
     std::swap(q, empty);
 }
 
@@ -61,10 +62,10 @@ AudioHandler::AudioHandler() noexcept
     // populate state pool
     // due to the nature for fftw, this might take a while...
     // state creation creates the fftw things!
-    for (auto rate : config.getPossibleAnalysisSampleRates()) {
+    for (auto rate : AudioConfig::getPossibleAnalysisSampleRates()) {
         StatePoolArray pool;
         for (auto& state : pool) {
-            state = new State(rate);
+            state = std::make_shared<State>(rate);
         }
         statePool[rate] = pool;
     }
@@ -95,11 +96,7 @@ AudioHandler::~AudioHandler() noexcept
     dataProcessor.join();
 
     // clean up states
-    for (auto& pair : statePool) {
-        for (auto state : pair.second) {
-            delete state;
-        }
-    }
+    statePool.clear();
 }
 
 void AudioHandler::startAudio()

@@ -162,22 +162,24 @@ private:
     /// protects the processing queue
     mutable std::mutex processingLock = {};
 
+    /// use shared pointers so we have less of a foot gun
+    using StatePtr = std::shared_ptr<State>;
     /// pool of audio states (stateData + fluff around it)
-    using StatePoolArray = std::array<State*, 5>;
+    using StatePoolArray = std::array<StatePtr, 5>;
     /// map of states. map key is the analysis lengths
     std::map<size_t, StatePoolArray> statePool = {};
 
     /// states current available for processing
-    std::queue<State*> unusedStates = {};
+    std::queue<StatePtr> unusedStates = {};
 
     /// state that is current captured into
-    State* captureState = nullptr;
+    StatePtr captureState = nullptr;
     /// number of samples already inside captureState
     size_t sampleCount = 0;
     /// states ready for processing
-    std::queue<State*> processStates = {};
+    std::queue<StatePtr> processStates = {};
     /// the state that is done with processing and can be used
-    State* doneState = nullptr;
+    StatePtr doneState = nullptr;
     /// counts up every time a state is done with processing
     size_t frameCount = 0;
 

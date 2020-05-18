@@ -77,7 +77,7 @@ void AudioHandler::captureCallback(void* stream, size_t len)
     // first check if there is no current capture State.
     // We then try to get one from the unusedState queue.
     // if there is none, we cant do things.
-    if (captureState == nullptr) {
+    if (!captureState) {
         callbackLock.lock();
         if (unusedStates.empty()) {
             callbackLock.unlock();
@@ -137,7 +137,7 @@ void AudioHandler::processingWorker() noexcept
 
         // current is our current audio state.
         // lock, see if there is something in the queue.
-        State* current = nullptr;
+        StatePtr current = nullptr;
         callbackLock.lock();
         if (!processStates.empty()) {
             current = processStates.front();
@@ -146,7 +146,7 @@ void AudioHandler::processingWorker() noexcept
         callbackLock.unlock();
 
         // if there was nothing, we got nothing to do
-        if (current == nullptr) {
+        if (!current) {
             continue;
         }
 
