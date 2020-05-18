@@ -18,8 +18,8 @@
 #ifndef laa_audioconfig_h
 #define laa_audioconfig_h
 
-#include "shared.h"
-#include "state.h"
+#include "../shared.h"
+#include "../state.h"
 
 #include <rtaudio/RtAudio.h>
 

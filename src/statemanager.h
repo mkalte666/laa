@@ -18,7 +18,7 @@
 #ifndef laa_statemanager_h
 #define laa_statemanager_h
 
-#include "audiohandler.h"
+#include "audio/audiohandler.h"
 #include <list>
 
 ImColor randColor();

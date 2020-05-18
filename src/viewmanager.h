@@ -18,7 +18,7 @@
 #ifndef laa_viewmanager_h
 #define laa_viewmanager_h
 
-#include "audiohandler.h"
+#include "audio/audiohandler.h"
 #include "coherenceview.h"
 #include "freqview.h"
 #include "irview.h"

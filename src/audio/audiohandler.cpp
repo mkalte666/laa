@@ -16,7 +16,7 @@
  */
 
 #include "audiohandler.h"
-#include "midpointslider.h"
+#include "../midpointslider.h"
 #include <filesystem>
 
 namespace fs = std::filesystem;

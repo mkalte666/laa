@@ -18,16 +18,19 @@
 #ifndef laa_audiohandler_h
 #define laa_audiohandler_h
 
+#include "../dsp/pinknoisegenerator.h"
+#include "../dsp/sinegenerator.h"
+#include "../dsp/sweepgenerator.h"
 #include "audioconfig.h"
-#include "dsp/pinknoisegenerator.h"
-#include "dsp/sinegenerator.h"
-#include "dsp/sweepgenerator.h"
 
 #include <map>
 #include <mutex>
 #include <queue>
 #include <thread>
 
+/**
+ * \brief Enumerize the dsp sample generators
+ */
 enum class FunctionGeneratorType {
     Silence,
     WhiteNoise,
@@ -35,8 +38,17 @@ enum class FunctionGeneratorType {
     Sine,
     Sweep
 };
+
+/**
+ * \brief Convert the FunctionGeneratorType enum to a string
+ * \param gen FunctionGeneratorType to stringify
+ * \return gen as a string
+ */
 std::string getStr(const FunctionGeneratorType& gen) noexcept;
 
+/**
+ * \brief Handles audio and audio UI config
+ */
 class AudioHandler {
 public:
     AudioHandler() noexcept;

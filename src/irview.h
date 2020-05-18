@@ -18,7 +18,7 @@
 #ifndef laa_irview_h
 #define laa_irview_h
 
-#include "audiohandler.h"
+#include "audio/audiohandler.h"
 #include "dsp/fft.h"
 #include "statemanager.h"
 
