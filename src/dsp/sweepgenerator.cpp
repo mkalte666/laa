@@ -55,7 +55,7 @@ void SweepGenerator::setLength(double newLength) noexcept
 void SweepGenerator::reset() noexcept
 {
     fmin = 30.0;
-    fmax = sampleRate / 2.0;
+    fmax = 20000;
     phi = 0.0;
     currFreq = fmin;
     double expFreq = std::pow(fmax / fmin, (currFreq - fmin) / (fmax - fmin)) * fmin;

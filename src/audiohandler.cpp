@@ -420,8 +420,8 @@ void AudioHandler::resetStates() noexcept
 {
     // halt the audio world
     processingLock.lock();
-
     callbackLock.lock();
+
     // clear them all
     doneState = nullptr;
     captureState = nullptr;
