@@ -1,0 +1,61 @@
+_comment: "Various configuration options/parameters for formatting\n  "
+line_width: 80
+tab_size: 4
+max_subgroups_hwrap: 2
+max_pargs_hwrap: 6
+separate_ctrl_name_with_space: false
+separate_fn_name_with_space: false
+dangle_parens: false
+dangle_align: prefix
+min_prefix_chars: 4
+max_prefix_chars: 10
+max_lines_hwrap: 2
+bullet_char: '*'
+enum_char: .
+line_ending: unix
+command_case: canonical
+keyword_case: unchanged
+additional_commands:
+  foo:
+    flags:
+    - BAR
+    - BAZ
+    kwargs:
+      HEADERS: '*'
+      SOURCES: '*'
+      DEPENDS: '*'
+always_wrap: []
+enable_sort: true
+autosort: true
+enable_markup: true
+first_comment_is_literal: false
+literal_comment_pattern: null
+fence_pattern: ^\s*([`~]{3}[`~]*)(.*)$
+ruler_pattern: ^\s*[^\w\s]{3}.*[^\w\s]{3}$
+emit_byteorder_mark: false
+hashruler_min_length: 10
+canonicalize_hashrulers: true
+input_encoding: utf-8
+output_encoding: utf-8
+require_valid_layout: false
+per_command: {}
+layout_passes: {}
+linter:
+  _comment: Options affecting the linter
+  disabled_codes: []
+  function_pattern: '[0-9a-z_]+'
+  macro_pattern: '[0-9A-Z_]+'
+  global_var_pattern: '[0-9A-Z][0-9A-Z_]+'
+  internal_var_pattern: _[0-9A-Z_]+
+  local_var_pattern: '[0-9a-z][0-9a-z_]+'
+  private_var_pattern: _[0-9a-z_]+
+  public_var_pattern: '[0-9A-Z][0-9A-Z_]+'
+  keyword_pattern: '[0-9A-Z_]+'
+  max_conditionals_custom_parser: 2
+  min_statement_spacing: 1
+  max_statement_spacing: 1
+  max_returns: 6
+  max_branches: 12
+  max_arguments: 5
+  max_localvars: 15
+  max_statements: 50

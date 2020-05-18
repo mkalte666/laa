@@ -66,11 +66,16 @@ done < <(find . -maxdepth 1 \
     -and -not -name "*fonts*" \
     -type d -print0)              # print \0 after each for the loop, also only directories
 
+# top level cmake file?
+if [ -f "$targetDir/CMakeLists.txt" ]; then
+    cmakeFiles+=" $targetDir/CMakeLists.txt"
+fi
+
 if [ "$dry" -ne 1 ]; then
   echo "cpp..."
   clang-format -style=file -fallback-style=WebKit -i $cppFiles
   echo "cmake..."
-  cmake-format -i $cmakeFiles
+  cmake-format -c $targetDir/.cmake-format -i $cmakeFiles
   echo "done!"
   exit 0
 else
