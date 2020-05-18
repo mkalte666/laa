@@ -19,7 +19,8 @@
 #define LAA_FFT_H
 
 // clang-format off
-#include <complex.h>
+#include <cstdlib>
+#include <complex>
 #include <fftw3.h>
 // clang-format on
 
@@ -42,57 +43,33 @@ public:
 
 using Real = double;
 using RealVec = std::vector<Real, FFTWAllocator<Real>>;
-using Complex = double _Complex;
+using Complex = std::complex<double>;
 using ComplexVec = std::vector<Complex, FFTWAllocator<Complex>>;
 
 inline double real(const Complex& c)
 {
-    return creal(c);
+    return c.real();
 }
 
 inline double imag(const Complex& c)
 {
-    return cimag(c);
+    return c.imag();
 }
 
-#define EPSILON 0.000001
 inline double phase(const Complex& c)
 {
-    return carg(c);
-    /*
-    double preAtan = 0.0;
-    if (std::abs(real(c)) < 0.01) {
-        return 0.0;
-    }
-    if (std::abs(real(c)) < EPSILON) {
-        preAtan = imag(c) > 0.0 ? M_PI / 2.0 : -M_PI / 2.0;
-    } else {
-        preAtan = imag(c) / real(c);
-    }
-
-    auto p = std::atan(preAtan);
-
-    if (real(c) < 0) {
-        if (imag(c) < 0) {
-            p -= M_PI;
-        } else {
-            p += M_PI;
-        }
-    }
-
-    return p;
-     */
+    return std::arg(c);
 }
 
 inline double mag(const Complex& c)
 {
-    return cabs(c);
+    return std::abs(c);
 }
 
 inline double magSquared(const Complex& c)
 {
-    double real = creal(c);
-    double imag = cimag(c);
+    double real = c.real();
+    double imag = c.imag();
 
     return real * real + imag * imag;
 }
