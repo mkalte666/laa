@@ -42,37 +42,22 @@ int AudioHandler::rtAudioCallback(void* outputBuffer, void* inputBuffer, unsigne
 {
     // callback data is this, so NOLINTNEXTLINE
     auto* handler = reinterpret_cast<AudioHandler*>(userData);
-    handler->captureCallback(inputBuffer, nFrames * 2 * sizeof(float));
-    handler->playbackCallback(outputBuffer, nFrames * 2 * sizeof(float));
+    handler->audioCallback(outputBuffer, inputBuffer, nFrames * 2 * sizeof(float));
 
     // why wouldn't we succeed?
     return 0;
 }
 
-// fill the output buffer with bytes
-void AudioHandler::playbackCallback(void* stream, size_t len)
+
+
+void AudioHandler::audioCallback(void* out, void* in, size_t len)
 {
     // this, combined with the rt audio callback, is a bit awkward but i have not had the time to clean it up yet
     auto count = static_cast<size_t>(len) / sizeof(float);
     // void pointers do that. NOLINTNEXTLINE
-    auto* ptr = reinterpret_cast<float*>(stream);
-
-    for (auto i = 0ULL; i + 1 < count; i += 2) {
-        // next sample scaled by the output volume. Nothing to see here really
-        auto f = config.outputVolume * genNextPlaybackSample();
-
-        // id like to do this without pointer wush, but whatever
-        ptr[i] = static_cast<float>(f); //NOLINT
-        ptr[i + 1] = static_cast<float>(f); //NOLINT
-    }
-}
-
-void AudioHandler::captureCallback(void* stream, size_t len)
-{
-    // this, combined with the rt audio callback, is a bit awkward but i have not had the time to clean it up yet
-    auto count = static_cast<size_t>(len) / sizeof(float);
+    auto* ptr = reinterpret_cast<float*>(in);
     // void pointers do that. NOLINTNEXTLINE
-    auto* ptr = reinterpret_cast<float*>(stream);
+    auto* outPtr = reinterpret_cast<float*>(out);
 
     // first check if there is no current capture State.
     // We then try to get one from the unusedState queue.
@@ -84,6 +69,7 @@ void AudioHandler::captureCallback(void* stream, size_t len)
             return;
         }
 
+        sweepGenerator.reset(); // so they are somewhat in sync
         captureState = unusedStates.front();
         unusedStates.pop();
         callbackLock.unlock();
@@ -91,6 +77,15 @@ void AudioHandler::captureCallback(void* stream, size_t len)
 
     // then we loop over samples.
     for (auto i = 0ULL; i + 1 < count; i += 2) {
+        // output
+        // next sample scaled by the output volume. Nothing to see here really
+        auto f = config.outputVolume * genNextPlaybackSample();
+
+        // id like to do this without pointer wush, but whatever
+        outPtr[i] = static_cast<float>(f); //NOLINT
+        outPtr[i + 1] = static_cast<float>(f); //NOLINT
+
+        // input
         // samples are coming in as flaot32, but the stream is a raw pointer.
         auto reference = ptr[i + (config.inputAndReferenceAreSwapped ? 1 : 0)]; // NOLINT
         auto input = ptr[i + (config.inputAndReferenceAreSwapped ? 0 : 1)]; // NOLINT
@@ -108,7 +103,6 @@ void AudioHandler::captureCallback(void* stream, size_t len)
         // also, as we are already locking anyway, try to set up the next captureState. same as at the top, really
         if (sampleCount >= config.analysisSamples) {
             callbackLock.lock();
-
             sampleCount = 0; // dont forget this!
             processStates.push(captureState);
             captureState = nullptr;
@@ -117,6 +111,7 @@ void AudioHandler::captureCallback(void* stream, size_t len)
                 callbackLock.unlock();
                 return;
             }
+            sweepGenerator.reset(); // so they are somewhat in sync
             captureState = unusedStates.front();
             unusedStates.pop();
             callbackLock.unlock();

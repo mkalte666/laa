@@ -103,20 +103,12 @@ private:
      * \brief Kills of the audio backend
      */
     void stopAudio();
-
-    /**
-     * \brief The member portion of the audio playback callback
-     * \param stream
-     * \param len
-     */
-    void playbackCallback(void* stream, size_t len);
-
     /**
      * \brief The member portion of the audio capture callback
      * \param stream
      * \param len
      */
-    void captureCallback(void* stream, size_t len);
+    void audioCallback(void* out, void* in, size_t len);
 
     /**
      * \brief The static callback called by rtaudio internals
