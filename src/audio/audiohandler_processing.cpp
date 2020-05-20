@@ -48,8 +48,6 @@ int AudioHandler::rtAudioCallback(void* outputBuffer, void* inputBuffer, unsigne
     return 0;
 }
 
-
-
 void AudioHandler::audioCallback(void* out, void* in, size_t len)
 {
     // this, combined with the rt audio callback, is a bit awkward but i have not had the time to clean it up yet

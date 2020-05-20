@@ -124,3 +124,8 @@ else()
                 pthread
                 rtaudio)
 endif()
+
+install(
+    TARGETS laatool
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib)
