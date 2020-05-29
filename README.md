@@ -38,6 +38,7 @@ If you downloaded a release tarball, or didn't clone with `--recursive` then you
 
 Afterwards, it should be the usual cmake workflow
 
+    cd /place/where/you/put/laa
     mkdir build && cd build
     cmake ..
     make -j
