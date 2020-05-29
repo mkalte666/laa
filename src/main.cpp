@@ -25,61 +25,65 @@
 int main(int, char**)
 {
     srand(static_cast<unsigned int>(time(nullptr)));
-    auto res = s2::SDL2::init(s2::InitFlags::Audio | s2::InitFlags::Video);
-    if (!res) {
-        std::cerr << "SDL Init  failed : " << res.getErrorMessage() << "\n";
+    auto res = SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO);
+    if (res != 0) {
+        std::cerr << "SDL Init  failed : " << SDL_GetError() << "\n";
         return -1;
     }
 
 #ifdef LAA_GL_ES_2
-    s2::Video::GL::setAttribute(s2::GLattr::ContextFlags, 0);
-    s2::Video::GL::setAttribute(s2::GLattr::ContextProfileMask, SDL_GL_CONTEXT_PROFILE_ES);
-    s2::Video::GL::setAttribute(s2::GLattr::ContextMajorVersion, 2);
-    s2::Video::GL::setAttribute(s2::GLattr::ContextMinorVersion, 0);
-    s2::Video::GL::setAttribute(s2::GLattr::Doublebuffer, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     const char* glsl_version = "#version 100";
 #else
-    s2::Video::GL::setAttribute(s2::GLattr::ContextFlags, 0);
-    s2::Video::GL::setAttribute(s2::GLattr::ContextProfileMask, SDL_GL_CONTEXT_PROFILE_CORE);
-    s2::Video::GL::setAttribute(s2::GLattr::ContextMajorVersion, 3);
-    s2::Video::GL::setAttribute(s2::GLattr::ContextMinorVersion, 0);
-    s2::Video::GL::setAttribute(s2::GLattr::Doublebuffer, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     const char* glsl_version = "#version 130";
 #endif
-    auto windowRes = s2::Video::Window::createCentered("LAA", 1024, 768, s2::WindowFlags::Resizable | s2::WindowFlags::Opengl);
-    if (!windowRes) {
-        std::cerr << "OpenGL Window creation failed : " << windowRes.getErrorMessage() << "\n";
+    //windowpos is doing shitstuff NOLINTNEXTLINE
+    auto window = SDL_CreateWindow("LAA", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    if (window == nullptr) {
+        std::cerr << "OpenGL Window creation failed : " << SDL_GetError() << "\n";
         return -1;
     }
-    auto window = windowRes.extractValue();
-    auto contextRes = s2::Video::GL::Context::create(window);
-    if (!contextRes) {
-        std::cerr << "OpenGL Context creation failed : " << contextRes.getErrorMessage() << "\n";
+
+    auto context = SDL_GL_CreateContext(window);
+    if (context == nullptr) {
+        std::cerr << "OpenGL Context creation failed : " << SDL_GetError() << "\n";
+        SDL_DestroyWindow(window);
+        SDL_Quit();
         return -1;
     }
-    auto context = contextRes.extractValue();
-    s2::Video::GL::setSwapInterval(1);
+
+    SDL_GL_SetSwapInterval(1);
 
     // imgui
+    // glew has a slightly different signature, but they are compatible NOLINTNEXTLINE
     auto gl3wres = gl3wInit2(reinterpret_cast<GL3WGetProcAddressProc>(&SDL_GL_GetProcAddress));
     (void)gl3wres;
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGui_ImplSDL2_InitForOpenGL(window.get(), context.get());
+    ImGui_ImplSDL2_InitForOpenGL(window, context);
     ImGui_ImplOpenGL3_Init(glsl_version);
     bool running = true;
 
     // view manager takes quite a while, so show some "wait a second" text
     // its in a loop so we actually get this out after the window is created and before we init
     // this is also the reason for the delay
-    s2::Timer::delay(200);
+    SDL_Delay(300);
     for (int i = 0; i < 10; i++) {
-        s2::Event e;
-        while (s2::Input::pollEvent(e)) {
+        SDL_Event e;
+        while (SDL_PollEvent(&e) != 0) {
             if (ImGui_ImplSDL2_ProcessEvent(&e)) {
                 continue;
             }
-            if (e.type == s2::EventType::Quit) {
+            if (e.type == SDL_QUIT) {
                 running = false;
             }
         }
@@ -87,7 +91,7 @@ int main(int, char**)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT
 
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(window.get());
+        ImGui_ImplSDL2_NewFrame(window);
         ImGui::NewFrame();
         ImGui::Begin("Waiting info window", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("Setting up. This might take a while.");
@@ -95,19 +99,19 @@ int main(int, char**)
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        s2::Video::GL::swap(window);
+        SDL_GL_SwapWindow(window);
     }
 
     // the blob above is there cause of this one
     auto manager = std::make_unique<ViewManager>();
 
     while (running) {
-        s2::Event e;
-        while (s2::Input::pollEvent(e)) {
+        SDL_Event e;
+        while (SDL_PollEvent(&e) != 0) {
             if (ImGui_ImplSDL2_ProcessEvent(&e)) {
                 continue;
             }
-            if (e.type == s2::EventType::Quit) {
+            if (e.type == SDL_QUIT) {
                 running = false;
             }
         }
@@ -119,24 +123,31 @@ int main(int, char**)
         // sadly window.setminsize can and is ingored by some wm on linux
         int windowW = 0;
         int windowH = 0;
-        window.getSize(windowW, windowH);
+        SDL_GetWindowSize(window, &windowW, &windowH);
+
         if (windowW < 320 || windowH < 240) {
             windowW = std::max(320, windowW);
             windowH = std::max(240, windowH);
-            window.setSize(windowW, windowH);
+            SDL_SetWindowSize(window, windowW, windowH);
         }
 
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(window.get());
+        ImGui_ImplSDL2_NewFrame(window);
         ImGui::NewFrame();
-        int w, h;
-        s2::Video::GL::getDrawableSize(window, w, h);
+
+        int w = 0;
+        int h = 0;
+        SDL_GL_GetDrawableSize(window, &w, &h);
         manager->update(ImVec2(static_cast<float>(w), static_cast<float>(h)));
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        s2::Video::GL::swap(window);
+        SDL_GL_SwapWindow(window);
     }
+
+    SDL_GL_DeleteContext(context);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 
     return 0;
 }

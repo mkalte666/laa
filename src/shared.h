@@ -20,8 +20,7 @@
 
 #include <cstdio>
 
-#define SDL2WRAP_STATIC
-#include <sdl2wrap/sdl2stl.h>
+#include <SDL.h>
 
 // clang-format off
 #include "imgui.h"
@@ -39,8 +38,6 @@
 
 #include "dsp/fft.h"
 #include "version.h"
-
-namespace s2 = sdl2wrap;
 
 template <class T>
 T& choose(bool arg, T& trueArg, T& falseArg)

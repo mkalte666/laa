@@ -69,7 +69,7 @@ void AudioHandler::update() noexcept
                     if (rtAudio == nullptr) {
                         rtAudio = std::make_unique<RtAudio>();
                         if (rtAudio == nullptr) {
-                            SDL2WRAP_ASSERT(false);
+                            SDL_assert_always(false);
                         }
                     }
                     config.captureDevice = rtAudio->getDeviceInfo(rtAudio->getDefaultInputDevice());

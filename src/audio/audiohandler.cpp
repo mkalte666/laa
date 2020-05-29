@@ -32,7 +32,7 @@ AudioHandler::AudioHandler() noexcept
     rtAudio = std::make_unique<RtAudio>();
     if (rtAudio == nullptr) {
         std::cout << "Could not start audio driver";
-        SDL2WRAP_ASSERT(false);
+        SDL_assert_always(false);
     }
 
     // some defaults
@@ -114,7 +114,7 @@ void AudioHandler::startAudio()
     rtAudio->startStream();
 
     running = true;
-    status = std::string("Running (") + s2::Audio::getCurrentDriver() + ")";
+    status = std::string("Running");
 }
 
 void AudioHandler::stopAudio()
