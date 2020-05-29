@@ -22,8 +22,15 @@
 #include <memory>
 #include <random>
 
+static constexpr int startDelay = 300;
+static constexpr int initialLoopsBeforeLongLoad = 10;
+static constexpr int minimalWindowWidth = 320;
+static constexpr int minimalWindowHeight = 240;
+
 int main(int, char**)
 {
+    // we just need "random", not random
+    // NOLINTNEXTLINE
     srand(static_cast<unsigned int>(time(nullptr)));
     auto res = SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO);
     if (res != 0) {
@@ -53,7 +60,7 @@ int main(int, char**)
         return -1;
     }
 
-    auto context = SDL_GL_CreateContext(window);
+    auto* context = SDL_GL_CreateContext(window);
     if (context == nullptr) {
         std::cerr << "OpenGL Context creation failed : " << SDL_GetError() << "\n";
         SDL_DestroyWindow(window);
@@ -76,8 +83,8 @@ int main(int, char**)
     // view manager takes quite a while, so show some "wait a second" text
     // its in a loop so we actually get this out after the window is created and before we init
     // this is also the reason for the delay
-    SDL_Delay(300);
-    for (int i = 0; i < 10; i++) {
+    SDL_Delay(startDelay);
+    for (int i = 0; i < initialLoopsBeforeLongLoad; i++) {
         SDL_Event e;
         while (SDL_PollEvent(&e) != 0) {
             if (ImGui_ImplSDL2_ProcessEvent(&e)) {
@@ -87,15 +94,15 @@ int main(int, char**)
                 running = false;
             }
         }
-        glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
+        glClearColor(0.0F, 0.0F, 0.0F, 1.0F); // NOLINT
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);
         ImGui::NewFrame();
         ImGui::Begin("Waiting info window", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("Setting up. This might take a while.");
-        ImGui::Text("Im sorry for this, but everything should be alot smoother as soon as we get going!");
+        ImGui::Text("Setting up. This might take a while."); //NOLINT
+        ImGui::Text("Im sorry for this, but everything should be alot smoother as soon as we get going!"); //NOLINT
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -116,7 +123,7 @@ int main(int, char**)
             }
         }
 
-        glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
+        glClearColor(0.0F, 0.0F, 0.0F, 1.0F); // NOLINT
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // NOLINT
 
         // make sure window size is not null
@@ -125,9 +132,9 @@ int main(int, char**)
         int windowH = 0;
         SDL_GetWindowSize(window, &windowW, &windowH);
 
-        if (windowW < 320 || windowH < 240) {
-            windowW = std::max(320, windowW);
-            windowH = std::max(240, windowH);
+        if (windowW < minimalWindowWidth || windowH < minimalWindowHeight) {
+            windowW = std::max(minimalWindowWidth, windowW);
+            windowH = std::max(minimalWindowHeight, windowH);
             SDL_SetWindowSize(window, windowW, windowH);
         }
 
