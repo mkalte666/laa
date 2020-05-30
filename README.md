@@ -18,7 +18,7 @@ The only dependencies of laa should be
  * SDL2, >= 2.0.8
  * fftw3, >= 3.3.8
  * OpenGL libraries 
- * rtaudio, >= 5.1.0
+ * rtaudio, >= 5.0.0
  
 Other versions might work (especially so for sdl2), so rolling release systems (arch, void, ...) should be fine.
  
@@ -40,7 +40,12 @@ Afterwards, it should be the usual cmake workflow
 
     cd /place/where/you/put/laa
     mkdir build && cd build
+
+    # If your librtaudio < 5.1.0:
+    cmake -D CMAKE_CXX_FLAGS=-DRTAUDIO500=1 ..
+    # Else:
     cmake ..
+
     make -j
     sudo make install 
     
