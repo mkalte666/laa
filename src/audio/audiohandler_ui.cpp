@@ -57,26 +57,26 @@ std::string getStr(const StateWindowFilter& filter) noexcept
 static std::string ApiName(const RtAudio::Api AApi)
 {
 #if defined(RTAUDIO500)
-    switch(AApi) {
+    switch (AApi) {
     case RtAudio::UNSPECIFIED: /*!< Search for a working compiled API. */
         return "Unspecified";
-    case RtAudio::LINUX_ALSA:     /*!< The Advanced Linux Sound Architecture API. */
+    case RtAudio::LINUX_ALSA: /*!< The Advanced Linux Sound Architecture API. */
         return "ALSA";
-    case RtAudio::LINUX_PULSE:    /*!< The Linux PulseAudio API. */
+    case RtAudio::LINUX_PULSE: /*!< The Linux PulseAudio API. */
         return "Pulse";
-    case RtAudio::LINUX_OSS:      /*!< The Linux Open Sound System API. */
+    case RtAudio::LINUX_OSS: /*!< The Linux Open Sound System API. */
         return "OSS";
-    case RtAudio::UNIX_JACK:      /*!< The Jack Low-Latency Audio Server API. */
+    case RtAudio::UNIX_JACK: /*!< The Jack Low-Latency Audio Server API. */
         return "JACK";
-    case RtAudio::MACOSX_CORE:    /*!< Macintosh OS-X Core Audio API. */
+    case RtAudio::MACOSX_CORE: /*!< Macintosh OS-X Core Audio API. */
         return "Core";
     case RtAudio::WINDOWS_WASAPI: /*!< The Microsoft WASAPI API. */
         return "WASAPI";
-    case RtAudio::WINDOWS_ASIO:   /*!< The Steinberg Audio Stream I/O API. */
+    case RtAudio::WINDOWS_ASIO: /*!< The Steinberg Audio Stream I/O API. */
         return "ASIO";
-    case RtAudio::WINDOWS_DS:     /*!< The Microsoft Direct Sound API. */
+    case RtAudio::WINDOWS_DS: /*!< The Microsoft Direct Sound API. */
         return "DirectSound";
-    case RtAudio::RTAUDIO_DUMMY:  /*!< A compilable but non-functional API. */
+    case RtAudio::RTAUDIO_DUMMY: /*!< A compilable but non-functional API. */
         return "Dummy";
     default:
         return "(INVALID)";
