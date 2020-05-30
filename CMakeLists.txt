@@ -120,6 +120,8 @@ else()
                 imguiplot
                 fftw3
                 m
+                stdc++fs
+                stdc++
                 pthread
                 rtaudio)
 endif()

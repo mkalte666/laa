@@ -54,6 +54,38 @@ std::string getStr(const StateWindowFilter& filter) noexcept
     return "";
 }
 
+static std::string ApiName(const RtAudio::Api AApi)
+{
+#if defined(RTAUDIO500)
+    switch(AApi) {
+    case RtAudio::UNSPECIFIED: /*!< Search for a working compiled API. */
+        return "Unspecified";
+    case RtAudio::LINUX_ALSA:     /*!< The Advanced Linux Sound Architecture API. */
+        return "ALSA";
+    case RtAudio::LINUX_PULSE:    /*!< The Linux PulseAudio API. */
+        return "Pulse";
+    case RtAudio::LINUX_OSS:      /*!< The Linux Open Sound System API. */
+        return "OSS";
+    case RtAudio::UNIX_JACK:      /*!< The Jack Low-Latency Audio Server API. */
+        return "JACK";
+    case RtAudio::MACOSX_CORE:    /*!< Macintosh OS-X Core Audio API. */
+        return "Core";
+    case RtAudio::WINDOWS_WASAPI: /*!< The Microsoft WASAPI API. */
+        return "WASAPI";
+    case RtAudio::WINDOWS_ASIO:   /*!< The Steinberg Audio Stream I/O API. */
+        return "ASIO";
+    case RtAudio::WINDOWS_DS:     /*!< The Microsoft Direct Sound API. */
+        return "DirectSound";
+    case RtAudio::RTAUDIO_DUMMY:  /*!< A compilable but non-functional API. */
+        return "Dummy";
+    default:
+        return "(INVALID)";
+    }
+#else
+    return RtAudio::getApiDisplayName(AApi);
+#endif
+}
+
 void AudioHandler::update() noexcept
 {
     ImGui::Begin("Audio Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysVerticalScrollbar);
@@ -62,9 +94,9 @@ void AudioHandler::update() noexcept
         ImGui::TextWrapped("Driver");
         std::vector<RtAudio::Api> rtAudioApis;
         RtAudio::getCompiledApi(rtAudioApis);
-        if (ImGui::BeginCombo("##apiSelect", RtAudio::getApiDisplayName(rtAudio->getCurrentApi()).c_str())) {
+        if (ImGui::BeginCombo("##apiSelect", ApiName(rtAudio->getCurrentApi()).c_str())) {
             for (auto& api : rtAudioApis) {
-                if (ImGui::Selectable(RtAudio::getApiDisplayName(api).c_str(), api == rtAudio->getCurrentApi())) {
+                if (ImGui::Selectable(ApiName(api).c_str(), api == rtAudio->getCurrentApi())) {
                     rtAudio = std::make_unique<RtAudio>(api);
                     if (rtAudio == nullptr) {
                         rtAudio = std::make_unique<RtAudio>();
