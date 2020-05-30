@@ -94,7 +94,7 @@ if(MINGW)
         PRIVATE mingw32
                 imgui
                 gl3w
-                SDL2::SDL2main
+                SDL2main
                 SDL2::SDL2
                 OpenGL::GL
                 imguiplot
