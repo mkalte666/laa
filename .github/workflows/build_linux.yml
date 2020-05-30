@@ -1,0 +1,39 @@
+name: Linux Build
+
+on:
+  push: {}
+  pull_request: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Install Dependencies
+      run : |
+        sudo apt-get -y update
+        sudo apt-get -y remove clang-6.0 libclang-common-6.0-dev libclang1-6.0 libllvm6.0
+        sudo apt-get -y install clang-9 clang-format-9 clang-tidy-9 libsdl2-dev libfftw3-dev librtaudio-dev g++-8 gcc-8
+    - name: Build GCC
+      run: |
+        rm -rf build/
+        mkdir build
+        cd build
+        CC=gcc-8 CXX=g++-8 cmake -D CMAKE_CXX_FLAGS=-DRTAUDIO500=1 -DCMAKE_BUILD_TYPE=Release ..
+        make clean
+        make -j
+        cd ..
+
+    - name: Build Clang
+      run: |
+        rm -rf build/
+        mkdir build
+        cd build
+        CC=clang CXX=clang++ cmake -D CMAKE_CXX_FLAGS=-DRTAUDIO500=1 -DCMAKE_BUILD_TYPE=Release ..
+        make clean
+        make -j
+        cd ..

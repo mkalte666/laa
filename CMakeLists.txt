@@ -28,6 +28,7 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(LAA)
 
 cmake_policy(SET CMP0072 NEW)
@@ -100,6 +101,8 @@ if(MINGW)
                 imguiplot
                 fftw3
                 m
+                stdc++fs
+                stdc++
                 rtaudio
                 ole32
                 winmm
