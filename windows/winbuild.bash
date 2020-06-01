@@ -56,6 +56,7 @@ cp "$src_dir/3rdparty/imgui-cmake-blob/imgui/LICENSE.txt" ./LICENSE.MIT.txt
 cp "$src_dir/3rdparty/LICENSE.ZLIB.txt" ./
 cp "$src_dir/3rdparty/LICENCE.RtAudio.txt" ./
 "$cpdeps" "/usr/$HOST/" bin/laatool.exe
+"$cpdeps" "/usr/lib/gcc/$HOST/" bin/laatool.exe
 "$cpdeps" "$local_root" bin/laatool.exe
 
 echo "Packing..."

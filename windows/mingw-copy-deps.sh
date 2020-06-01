@@ -35,7 +35,7 @@ function copydeps
                 destname=${COPYTO}/$(basename "${dll}")
                 [ -f "${destname}" ] && continue
 
-                find "${SYSROOT}" -name "${dll}" | while read f
+                find "${SYSROOT}" -name "${dll}" -and -not -path "*win32*"| while read f
                 do
                         cp -v "${f}" "${destname}" && copydeps "${f}" && break
                 done
