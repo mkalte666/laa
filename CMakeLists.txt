@@ -129,6 +129,10 @@ if(MINGW)
                 wmcodecdspuuid
                 dsound)
     message("Mingw builds are buggy")
+    # old g++. cmake doesnt find it but IT IS THERE
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.1)
+        target_link_libraries(laatool PRIVATE stdc++fs)
+    endif()
 else()
     target_link_libraries(
         laatool
@@ -143,11 +147,11 @@ else()
                 stdc++
                 pthread
                 ${rtaudioLib})
-endif()
+    # fs lib, if exsists
+    if(fslib)
+        target_link_libraries(laatool PRIVATE ${fslib})
+    endif()
 
-# fs lib, if exsists
-if(fslib)
-    target_link_libraries(laatool PRIVATE ${fslib})
 endif()
 
 install(
