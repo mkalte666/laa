@@ -17,8 +17,16 @@
 
 #include "audiohandler.h"
 
+#include <version>
+#if defined(__cpp_lib_filesystem)
 #include <filesystem> // exsists
 namespace fs = std::filesystem;
+#elif defined(__cpp_lib_experimental_filesystem)
+#include <experimental/filesystem> // exsists
+namespace fs = std::experimantal::filesystem;
+#else
+#error "FS is needed"
+#endif
 
 template <class T>
 void clearStateQueue(std::queue<T>& q)
