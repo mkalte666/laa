@@ -1,0 +1,38 @@
+name: Mingw Windows Build
+
+on:
+  push: {}
+  pull_request: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Dependencies
+        run : |
+          sudo apt-get -y update
+          sudo apt-get -y install mingw-w64 cmake
+          sudo update-alternatives --install /usr/bin/x86_64-w64-mingw32-g++ x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix 800
+          sudo update-alternatives --install /usr/bin/x86_64-w64-mingw32-gcc x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix 800
+
+      - name: Winbuild.bash
+        run: |
+          cd windows
+          ./winbuild.bash
+          cd ..
+
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: build.log
+          path: windows/build/build.log
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: output
+          path: windows/*.zip
