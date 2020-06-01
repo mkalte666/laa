@@ -108,40 +108,38 @@ if(MINGW)
     target_link_libraries(
         laatool
         PRIVATE mingw32
+                imgui
+                gl3w
+                ${sdl2mainlib}
+                SDL2::SDL2
+                OpenGL::GL
+                imguiplot
+                ${fftwLib}
                 m
                 stdc++
+                ${rtaudioLib}
                 ole32
                 winmm
                 ksuser
                 mfplat
                 mfuuid
                 wmcodecdspuuid
-                dsound
-                ${sdl2mainlib}
-                SDL2::SDL2
-                OpenGL::GL
-                ${fftwLib}
-                ${rtaudioLib}
-                imgui
-                gl3w
-                imguiplot
-)
+                dsound)
     message("Mingw builds are buggy")
 else()
     target_link_libraries(
         laatool
-        PRIVATE m
-                stdc++
-                pthread
+        PRIVATE imgui
+                gl3w
                 SDL2::SDL2
                 SDL2::SDL2main
                 OpenGL::GL
-                ${fftwLib}
-                ${rtaudioLib}
-                imgui
-                gl3w
                 imguiplot
-    )
+                ${fftwLib}
+                m
+                stdc++
+                pthread
+                ${rtaudioLib})
 endif()
 
 # fs lib, if exsists
