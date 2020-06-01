@@ -29,6 +29,8 @@ rm -rf "$build_dir"
 mkdir -p "$build_dir"
 rm -rf "$package_dir"
 mkdir -p "$package_dir"
+rm ./*.zip
+rm ./*.tar.gz
 
 # to build dir
 echo "Building laa"
@@ -43,7 +45,7 @@ cd "$build_dir" || exit 1
 } >> build.log 2>&1 || exit 1
 
 # copy and zip
-echo "Make deps"
+echo "Copy deps and stuff"
 cd "$package_dir"
 cp "$src_dir/LICENSE" ./LICENCE.txt
 cp "$src_dir/3rdparty/thirdPartyNotes.txt" ./
@@ -53,3 +55,11 @@ cp "$src_dir/3rdparty/LICENCE.RtAudio.txt" ./
 "$cpdeps" "/usr/x86_64-w64-mingw32/" bin/laatool.exe
 "$cpdeps" "$local_root" bin/laatool.exe
 
+echo "Packing..."
+packname="build.win64.$(git rev-parse --short HEAD).$(date +%Y.%m.%d.%H.%M.%S)"
+zip -q "$packname.zip" ./*
+mv "$packname.zip" "$root_dir"
+tar cfz "$packname.tar.gz" ./*
+mv "$packname.tar.gz" "$root_dir"
+
+echo "done"
