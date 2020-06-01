@@ -31,6 +31,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(LAA)
 
+# for opengl
 cmake_policy(SET CMP0072 NEW)
 
 set(imguiIncludeDir
@@ -42,6 +43,15 @@ add_subdirectory(3rdparty/imguiplot)
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 
+# i dont really want to painfully build a find file for these two
+find_path(fftwInclude "fftw3.h")
+find_library(fftwLib "fftw3")
+find_path(rtaudioInclude "rtaudio/RtAudio.h")
+find_library(rtaudioLib "rtaudio")
+# also this guy
+find_library(fslib "stdc++fs")
+
+# sources
 add_executable(
     laatool
     src/audio/audioconfig.cpp
@@ -88,45 +98,55 @@ add_executable(
 
 enablestrictoptions(laatool)
 
+# need those cause we dont have a find package here
+target_include_directories(laatool SYSTEM PRIVATE ${fftwInclude} ${rtaudioInclude})
+
 if(MINGW)
+    # fix: sdl2::SDL2main doesnt work for some reason
+    find_library(sdl2mainlib "SDL2main")
     add_definitions(-DNOMINMAX)
     target_link_libraries(
         laatool
         PRIVATE mingw32
-                imgui
-                gl3w
-                SDL2main
-                SDL2::SDL2
-                OpenGL::GL
-                imguiplot
-                fftw3
                 m
-                stdc++fs
                 stdc++
-                rtaudio
                 ole32
                 winmm
                 ksuser
                 mfplat
                 mfuuid
                 wmcodecdspuuid
-                dsound)
+                dsound
+                ${sdl2mainlib}
+                SDL2::SDL2
+                OpenGL::GL
+                ${fftwLib}
+                ${rtaudioLib}
+                imgui
+                gl3w
+                imguiplot
+)
     message("Mingw builds are buggy")
 else()
     target_link_libraries(
         laatool
-        PRIVATE imgui
-                gl3w
-                SDL2::SDL2main
-                SDL2::SDL2
-                OpenGL::GL
-                imguiplot
-                fftw3
-                m
-                stdc++fs
+        PRIVATE m
                 stdc++
                 pthread
-                rtaudio)
+                SDL2::SDL2
+                SDL2::SDL2main
+                OpenGL::GL
+                ${fftwLib}
+                ${rtaudioLib}
+                imgui
+                gl3w
+                imguiplot
+    )
+endif()
+
+# fs lib, if exsists
+if(fslib)
+    target_link_libraries(laatool PRIVATE ${fslib})
 endif()
 
 install(
