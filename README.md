@@ -11,6 +11,8 @@ There should be a zip with all files for windows for the current version there.
 If you want to build for windows, see below. It's not that easy, but quite doable.
 
 ## LINUX Install/Build 
+![Linux Build](https://github.com/mkalte666/laa/workflows/Linux%20Build/badge.svg?branch=master)
+
 Linux is where laa is written on, so naturally, building and installing should be rather easy. 
 
 ### Dependencies 
@@ -19,6 +21,7 @@ The only dependencies of laa should be
  * fftw3, >= 3.3.8
  * OpenGL libraries 
  * rtaudio, >= 5.0.0
+ * python3 (for building only)
  
 Other versions might work (especially so for sdl2), so rolling release systems (arch, void, ...) should be fine.
  
@@ -50,13 +53,23 @@ Afterwards, it should be the usual cmake workflow
     sudo make install 
     
 ## WINDOWS Build
-Building on windows is not recommended. 
-For the windows release, the scripts under /windows are used. 
+![Mingw Windows Build](https://github.com/mkalte666/laa/workflows/Mingw%20Windows%20Build/badge.svg?branch=master)
+
+Building for/on windows can be tricky as gcc and friends tend to be a bit outated. 
+Make sure gcc is at least 7.3! 8.1+ is strongly reccomended!
+
+Anyway - for the windows release, the scripts under /windows are used. 
 The basic workflow (should also work inside cygwin/msys2/...) is 
   * Install mingw-w64 (for `x86_64-w64-mingw32-gcc` and its friends)
-  * Install the dependencies by building them from source
-    * note that opengl should just work(tm), cause sdl2 is neat and windows is easy there
-  * Check if the toolchain file (cmake/toolchain.cmake) is fine and edit it if your compilers are, for some reason, named differently
-  * run winbuild.bash
+  * Install python3 (only needed for building)
+  * clone the repository with `--recursive`
+  * cd into `windows/`
+  * run `winbuild.bash`
   
-Aside from calling cmake with the toolchain file, the winbuild.bash also copies over licence files, DLLs and creates a release zip.
+Note that running `winbuild.bash` for the first time calls `windeps.bash`, wich downloads and builds the dependencies. 
+This will take a bit of time.
+`winbuild.bash` also creates a release tar and zip with licences, dlls etc. copied over. 
+If you have any trouble, or have tested out stuff from within cygwin or msys2 and can report back for that, please open a issue over here. 
+
+## Thats it!
+Thanks for being interested in LAA :D
