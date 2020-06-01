@@ -17,11 +17,10 @@
 
 #include "audiohandler.h"
 
-#include <version>
-#if defined(__cpp_lib_filesystem)
+#if __has_include(<filesystem>)
 #include <filesystem> // exsists
 namespace fs = std::filesystem;
-#elif defined(__cpp_lib_experimental_filesystem)
+#elif __has_include(<experimental/filesystem>)
 #include <experimental/filesystem> // exsists
 namespace fs = std::experimantal::filesystem;
 #else
