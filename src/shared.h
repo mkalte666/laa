@@ -59,4 +59,6 @@ const T& choose(bool arg, const T& trueArg, const T& falseArg)
     return falseArg;
 }
 
+#define LAA_PI 3.14159265358979323846
+
 #endif //laa_shared_h

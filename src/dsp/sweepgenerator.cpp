@@ -17,6 +17,7 @@
 
 #include "sweepgenerator.h"
 #include <cmath>
+#include "../shared.h"
 
 // https://ieeexplore.ieee.org/document/4813749
 
@@ -27,7 +28,7 @@ double SweepGenerator::nextSample() noexcept
     auto w = K / L * std::exp(t / L);
     // paper assumes n(0) = 1, but we dont want that as we want to stay in 0..1
     // nicer would be n(T) = 1. solve that =>
-    auto n = std::sqrt(w / (2 * M_PI * fmax));
+    auto n = std::sqrt(w / (2 * LAA_PI * fmax));
     auto res = n * std::sin(K * (std::exp(t / L) - 1.0));
 
     if (t > length) {
@@ -62,7 +63,7 @@ void SweepGenerator::reset() noexcept
     counter = 0;
 
     // K = T * w1 / (ln(w2/w1)
-    K = length * (fmin * 2.0 * M_PI) / std::log(fmax / fmin);
+    K = length * (fmin * 2.0 * LAA_PI) / std::log(fmax / fmin);
     // L = T / ln(w1/w1)
     L = length / std::log(fmax / fmin);
 }

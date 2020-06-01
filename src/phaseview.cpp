@@ -27,11 +27,11 @@ void PhaseView::update(StateManager& stateManager, std::string idHint)
     auto size = ImGui::GetWindowContentRegionMax();
     PlotConfig plotConfig;
     plotConfig.size = ImVec2(size.x * 0.98F, size.y - 75.0F);
-    plotConfig.maxLineJumpDistance = M_PI;
-    plotConfig.yAxisConfig.min = -M_PI;
-    plotConfig.yAxisConfig.max = M_PI;
+    plotConfig.maxLineJumpDistance = LAA_PI;
+    plotConfig.yAxisConfig.min = -LAA_PI;
+    plotConfig.yAxisConfig.max = LAA_PI;
     plotConfig.yAxisConfig.enableLogScale = false;
-    plotConfig.yAxisConfig.gridInterval = M_PI / 2;
+    plotConfig.yAxisConfig.gridInterval = LAA_PI / 2;
 
     plotConfig.label = "Mag";
 
