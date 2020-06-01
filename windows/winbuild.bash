@@ -6,7 +6,7 @@ mkdir -p build/package
 mkdir -p build/cmake 
 
 # to build dir 
-cd build/cmake 
+cd build/cmake || exit
 cmake ../../../ -DCMAKE_TOOLCHAIN_FILE=../../toolchain.cmake -DCMAKE_BUILD_TYPE=Release .
 make -j 4
 cd ../../

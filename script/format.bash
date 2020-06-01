@@ -63,6 +63,7 @@ done < <(find . -maxdepth 1 \
     -and -not -name "*build*" \
     -and -not -name "*3rdparty*" \
     -and -not -name "*thirdparty*" \
+    -and -not -name "*windows*" \
     -and -not -name "*fonts*" \
     -type d -print0)              # print \0 after each for the loop, also only directories
 
