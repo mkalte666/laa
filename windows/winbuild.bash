@@ -14,6 +14,9 @@ if [ ! -d "deps" ]; then
 fi
 
 # config
+if [ -z "$HOST" ]; then
+  HOST="x86_64-w64-mingw32"
+fi
 root_dir="$(realpath ./)"
 src_dir="$root_dir/../"
 deps_dir="$root_dir/deps"
@@ -29,8 +32,8 @@ rm -rf "$build_dir"
 mkdir -p "$build_dir"
 rm -rf "$package_dir"
 mkdir -p "$package_dir"
-rm ./*.zip
-rm ./*.tar.gz
+rm -f ./*.zip
+rm -f ./*.tar.gz
 
 # to build dir
 echo "Building laa"
@@ -52,7 +55,7 @@ cp "$src_dir/3rdparty/thirdPartyNotes.txt" ./
 cp "$src_dir/3rdparty/imgui-cmake-blob/imgui/LICENSE.txt" ./LICENSE.MIT.txt
 cp "$src_dir/3rdparty/LICENSE.ZLIB.txt" ./
 cp "$src_dir/3rdparty/LICENCE.RtAudio.txt" ./
-"$cpdeps" "/usr/x86_64-w64-mingw32/" bin/laatool.exe
+"$cpdeps" "/usr/$HOST/" bin/laatool.exe
 "$cpdeps" "$local_root" bin/laatool.exe
 
 echo "Packing..."

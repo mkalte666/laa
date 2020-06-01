@@ -7,12 +7,13 @@ print_error() {
 }
 trap 'print_error $LINENO' ERR
 
-
 # config
-
-cc_name="$(command -v x86_64-w64-mingw32-gcc)"
-cxx_name="$(command -v x86_64-w64-mingw32-g++)"
-rc_name="$(command -v x86_64-w64-mingw32-windres)"
+if [ -z "$HOST" ]; then
+  HOST="x86_64-w64-mingw32"
+fi
+cc_name="$(command -v $HOST-gcc)"
+cxx_name="$(command -v $HOST-g++)"
+rc_name="$(command -v $HOST-windres)"
 
 sdl_name="SDL2-2.0.12"
 fftw_name="fftw-3.3.8"
@@ -26,7 +27,8 @@ rtaudio_tar="$rtaudio_name.tar.gz"
 echo "If this fails:"
 echo "Make sure mingw-w64 is installed and has all usual libs (d3d etc) installed"
 echo "Also, you need c++17 support! gcc should be >= 8"
-
+echo "In case it doesnt find the compiler at all, set the HOST variable. it is currently set to '$HOST'"
+echo "Example: On ubuntu, this should be something like 'x86_64-w64-mingw32'"
 # cleanup
 echo "Cleanup old dep download and build"
 rm -rf ./deps
@@ -41,7 +43,7 @@ local_root="$(realpath deps/install)"
 
 # make cmake toolchain file (needed later)
 echo "Building toolchain file"
-roots="/usr/x86_64-w64-mingw32/ $local_root"
+roots="/usr/$HOST/ $local_root"
 {
   echo "set(CMAKE_SYSTEM_NAME Windows)"
   echo "set(CMAKE_C_COMPILER $cc_name)"
@@ -77,7 +79,7 @@ mkdir -p "$build_dir/$sdl_name"
 cd "$build_dir/$sdl_name" || exit 1
 {
   cmake "$dl_dir/$sdl_name/" \
-    -DCMAKE_TOOLCHAIN_FILE="$root_dir/toolchain.cmake" \
+    -DCMAKE_TOOLCHAIN_FILE="$root_dir/deps/toolchain.cmake" \
     -DCMAKE_BUILD_TYPE=Release\
     -DCMAKE_INSTALL_PREFIX="$local_root"
   make -j"$(nproc)"
@@ -99,7 +101,7 @@ cd "$build_dir/$fftw_name" || exit 1
       --enable-portable-binary\
       --enable-sse2\
       --with-incoming-stack-boundary=2\
-      --host x86_64-w64-mingw32\
+      --host "$HOST"\
       --prefix "$local_root"
   make -j"$(nproc)"
   make install
@@ -113,7 +115,7 @@ cd "$build_dir/$rtaudio_name" || exit 1
   "$dl_dir/$rtaudio_name/configure" \
     --without-ds\
     --without-asio\
-    --host x86_64-w64-mingw32\
+    --host "$HOST"\
     --prefix "$local_root"
   make -j"$(nproc)"
   make install
