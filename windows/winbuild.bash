@@ -60,7 +60,7 @@ cp "$src_dir/3rdparty/LICENCE.RtAudio.txt" ./
 
 echo "Packing..."
 packname="build.win64.$(git rev-parse --short HEAD).$(date +%Y.%m.%d.%H.%M.%S)"
-zip -q "$packname.zip" ./*
+zip -r -q "$packname.zip" ./*
 mv "$packname.zip" "$root_dir"
 tar cfz "$packname.tar.gz" ./*
 mv "$packname.tar.gz" "$root_dir"
