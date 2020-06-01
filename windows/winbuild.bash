@@ -1,24 +1,55 @@
 #!/bin/bash
 
-rm -rf ./build
-mkdir -p build/
-mkdir -p build/package
-mkdir -p build/cmake 
+# error reporting during builds
+set -e
+print_error() {
+  echo "Error while building. Check the build.log in the build folder"
+}
+trap 'print_error' ERR
 
-# to build dir 
-cd build/cmake || exit
-cmake ../../../ -DCMAKE_TOOLCHAIN_FILE=../../toolchain.cmake -DCMAKE_BUILD_TYPE=Release .
-make -j 4
-cd ../../
+# check if deps exsist
+if [ ! -d "deps" ]; then
+  echo "Dependencies not found. running windeps.bash"
+  ./windeps.bash
+fi
 
-# copy exe and deps 
-cp build/cmake/laatool.exe build/package/ 
-./mingw-copy-deps.sh /usr/x86_64-w64-mingw32/ build/package/laatool.exe
-cp ../LICENSE build/package/LICENCE.txt 
-cp ../3rdparty/thirdPartyNotes.txt build/package/
-cp ../3rdparty/imgui-cmake-blob/imgui/LICENSE.txt build/package/LICENSE.MIT.txt
-cp ../3rdparty/LICENSE.ZLIB.txt build/package/
-cp ../3rdparty/LICENCE.RtAudio.txt build/package
+# config
+root_dir="$(realpath ./)"
+src_dir="$root_dir/../"
+deps_dir="$root_dir/deps"
+local_root="$deps_dir/install"
+toolchain="$deps_dir/toolchain.cmake"
+build_dir="$root_dir/build"
+package_dir="$root_dir/package"
+cpdeps="$root_dir/mingw-copy-deps.sh"
 
-# pack a zip
-zip -r build/package.zip build/package/
+# cleanup
+echo "Deleting old build"
+rm -rf "$build_dir"
+mkdir -p "$build_dir"
+rm -rf "$package_dir"
+mkdir -p "$package_dir"
+
+# to build dir
+echo "Building laa"
+cd "$build_dir" || exit 1
+{
+  cmake "$src_dir"\
+    -DCMAKE_TOOLCHAIN_FILE="$toolchain"\
+    -DCMAKE_BUILD_TYPE=Release\
+    -DCMAKE_INSTALL_PREFIX="$package_dir"
+  make -j"$(nproc)"
+  make install
+} >> build.log 2>&1 || exit 1
+
+# copy and zip
+echo "Make deps"
+cd "$package_dir"
+cp "$src_dir/LICENSE" ./LICENCE.txt
+cp "$src_dir/3rdparty/thirdPartyNotes.txt" ./
+cp "$src_dir/3rdparty/imgui-cmake-blob/imgui/LICENSE.txt" ./LICENSE.MIT.txt
+cp "$src_dir/3rdparty/LICENSE.ZLIB.txt" ./
+cp "$src_dir/3rdparty/LICENCE.RtAudio.txt" ./
+"$cpdeps" "/usr/x86_64-w64-mingw32/" bin/laatool.exe
+"$cpdeps" "$local_root" bin/laatool.exe
+
