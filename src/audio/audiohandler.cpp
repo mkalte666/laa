@@ -22,7 +22,7 @@
 namespace fs = std::filesystem;
 #elif __has_include(<experimental/filesystem>)
 #include <experimental/filesystem> // exsists
-namespace fs = std::experimantal::filesystem;
+namespace fs = std::experimental::filesystem;
 #else
 #error "FS is needed"
 #endif

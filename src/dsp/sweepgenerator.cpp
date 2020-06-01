@@ -16,8 +16,8 @@
  */
 
 #include "sweepgenerator.h"
-#include <cmath>
 #include "../shared.h"
+#include <cmath>
 
 // https://ieeexplore.ieee.org/document/4813749
 

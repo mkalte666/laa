@@ -18,9 +18,9 @@
 #ifndef laa_hamming_h
 #define laa_hamming_h
 
+#include "../shared.h"
 #include <cmath>
 #include <vector>
-#include "../shared.h"
 
 template <class T, class Talloc = std::allocator<T>>
 inline void hamming(std::vector<T, Talloc>& out, const std::vector<T, Talloc>& in)
