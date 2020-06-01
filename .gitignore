@@ -118,4 +118,8 @@ _deps
 .vs/
 CMakeSettings.json
 windows/build
+windows/deps
+windows/package
 build/
+*.zip
+*.tar.gz
