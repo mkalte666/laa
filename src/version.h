@@ -22,8 +22,8 @@
 #include <string>
 
 static constexpr int LaaVersionMajor = 0;
-static constexpr int LaaVersionMinor = 2;
-static constexpr int LaaVersionPatch = 1;
+static constexpr int LaaVersionMinor = 3;
+static constexpr int LaaVersionPatch = 0;
 
 inline std::string getVersionString()
 {
