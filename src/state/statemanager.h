@@ -15,33 +15,32 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef laa_irview_h
-#define laa_irview_h
+#ifndef laa_statemanager_h
+#define laa_statemanager_h
 
-#include "audio/audiohandler.h"
-#include "dsp/fft.h"
-#include "state/statemanager.h"
+#include "../audio/audiohandler.h"
+#include <list>
 
-struct IrMarker {
-    PlotClickInfo clickInfo = {};
-    ImColor color = {};
-    bool isRef = false;
-};
+ImColor randColor();
 
-class IrView {
+class StateManager {
 public:
-    void update(StateManager& stateManager, std::string idHint);
+    StateManager() noexcept;
+    ~StateManager() noexcept = default;
+    void update(AudioHandler& audioHandler);
+
+    [[nodiscard]] const StateData& getLive() const noexcept;
+
+    [[nodiscard]] const std::list<StateData>& getSaved() const noexcept;
 
 private:
-    void addMarker(const StateData& state, const PlotClickInfo& info) noexcept;
-    double range = 1.0;
-    double yRange = 0.51;
-    bool smoothing = false;
-    bool showAbsValues = false;
+    void deactivateAll();
+    size_t lastFrame = 0;
+    StateData liveState = {};
+    bool liveVisible = true;
+    bool liveActive = true;
 
-    std::list<IrMarker> markers = {};
-    double refValue = 0.0;
-    void clearRef() noexcept;
-    void findPeak(StateManager& stateManager) noexcept;
+    std::list<StateData> saved = {};
 };
-#endif //laa_irview_h
+
+#endif //laa_statemanager_h

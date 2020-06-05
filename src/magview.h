@@ -18,7 +18,7 @@
 #ifndef laa_magview_h
 #define laa_magview_h
 
-#include "statemanager.h"
+#include "state/statemanager.h"
 
 class MagView {
 public:

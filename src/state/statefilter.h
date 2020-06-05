@@ -15,32 +15,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef laa_statemanager_h
-#define laa_statemanager_h
+#ifndef laa_statefilter_h
+#define laa_statefilter_h
 
-#include "audio/audiohandler.h"
-#include <list>
+#include "../shared.h"
 
-ImColor randColor();
-
-class StateManager {
-public:
-    StateManager() noexcept;
-    ~StateManager() noexcept = default;
-    void update(AudioHandler& audioHandler);
-
-    [[nodiscard]] const StateData& getLive() const noexcept;
-
-    [[nodiscard]] const std::list<StateData>& getSaved() const noexcept;
-
-private:
-    void deactivateAll();
-    size_t lastFrame = 0;
-    StateData liveState = {};
-    bool liveVisible = true;
-    bool liveActive = true;
-
-    std::list<StateData> saved = {};
-};
-
-#endif //laa_statemanager_h
+#endif //laa_statefilter_h

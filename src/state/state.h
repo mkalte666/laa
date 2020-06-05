@@ -18,9 +18,9 @@
 #ifndef laa_state_h
 #define laa_state_h
 
-#include "dsp/avg.h"
-#include "dsp/windows.h"
-#include "shared.h"
+#include "../dsp/avg.h"
+#include "../dsp/windows.h"
+#include "../shared.h"
 
 /**
  * \brief Select a window filter that is run over the input

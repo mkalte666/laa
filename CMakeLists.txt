@@ -90,10 +90,11 @@ add_executable(
     src/shared.h
     src/signalview.cpp
     src/signalview.h
-    src/state.cpp
-    src/state.h
-    src/statemanager.cpp
-    src/statemanager.h
+    src/state/state.cpp
+    src/state/state.h
+    src/state/statefilter.h
+    src/state/statemanager.cpp
+    src/state/statemanager.h
     src/version.h
     src/viewmanager.cpp
     src/viewmanager.h)

@@ -18,7 +18,7 @@
 #ifndef laa_freqview_h
 #define laa_freqview_h
 
-#include "statemanager.h"
+#include "state/statemanager.h"
 
 class FreqView {
 public:

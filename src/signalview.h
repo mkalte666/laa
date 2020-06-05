@@ -19,7 +19,7 @@
 #define laa_signalview_h
 
 #include "shared.h"
-#include "statemanager.h"
+#include "state/statemanager.h"
 
 class SignalView {
 public:

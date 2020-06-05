@@ -26,7 +26,7 @@
 #include "phaseview.h"
 #include "shared.h"
 #include "signalview.h"
-#include "statemanager.h"
+#include "state/statemanager.h"
 
 class ViewManager {
 public:

@@ -19,7 +19,7 @@
 #define laa_audioconfig_h
 
 #include "../shared.h"
-#include "../state.h"
+#include "../state/state.h"
 
 #include <rtaudio/RtAudio.h>
 

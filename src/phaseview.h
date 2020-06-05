@@ -18,7 +18,7 @@
 #ifndef laa_phaseview_h
 #define laa_phaseview_h
 
-#include "statemanager.h"
+#include "state/statemanager.h"
 
 class PhaseView {
 public:

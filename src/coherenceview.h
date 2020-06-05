@@ -18,7 +18,7 @@
 #ifndef laa_coherenceview_h
 #define laa_coherenceview_h
 
-#include "statemanager.h"
+#include "state/statemanager.h"
 
 class CoherenceView {
 public:

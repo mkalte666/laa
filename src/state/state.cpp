@@ -16,7 +16,7 @@
  */
 
 #include "state.h"
-#include "dsp/smoothing.h"
+#include "../dsp/smoothing.h"
 
 State::State(size_t fftLen) noexcept
 {
