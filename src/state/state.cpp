@@ -88,9 +88,6 @@ void State::calc(StateFilterConfig& filterConfig) noexcept
         data.transferFunction[i] = data.fftInput[i] / data.fftReference[i];
     }
 
-    // filter magnitude
-    filterConfig.filter(data.avgMag, data.fftLen);
-
     // divide our range into segments
     // estimate psd and csd over these segments
     // then estimate the squared coherence at a point.
@@ -111,14 +108,41 @@ void State::calc(StateFilterConfig& filterConfig) noexcept
 
     // compute impulse response
     fftw_execute(impulseResponsePlan);
-    // normalize
+    // normalize and mean of ir
+    double meanIr = 0.0;
+    double varIr = 0.0;
     for (size_t i = 0; i < data.fftLen; i++) {
         data.impulseResponse[i] /= dFftLen;
+        // while we are at it, also build up meanIr
+        meanIr += data.impulseResponse[i];
     }
+    meanIr /= dFftLen;
+    // variance of ir
+    for (size_t i = 0; i < data.fftLen; i++) {
+        varIr += (data.impulseResponse[i] - meanIr) * (data.impulseResponse[i] - meanIr);
+    }
+    varIr /= dFftLen;
+    // now that we know the variance, we can cut off things in the ir that are not significant
+    for (size_t i = 0; i < data.fftLen; i++) {
+        // we dont care about anything within std deviation
+        double irSquare = data.impulseResponse[i] * data.impulseResponse[i];
+        if (irSquare < meanIr * meanIr + varIr) {
+            if (irSquare > meanIr - varIr) {
+                data.smoothedImpulseResponse[i] = 0.0;
+                continue;
+            }
+        }
+
+        data.smoothedImpulseResponse[i] = data.impulseResponse[i];
+    }
+
+    // filters
+    filterConfig.filter(data.avgMag, data.fftLen);
+
     // smooth out things
     smooth(data.smoothedAvgMag, data.avgMag);
     smooth(data.smoothedTransferFunction, data.transferFunction);
-    smooth(data.smoothedImpulseResponse, data.impulseResponse);
+    //smooth(data.smoothedImpulseResponse, data.impulseResponse);
     smooth(data.smoothedCoherence, data.coherence);
 }
 
