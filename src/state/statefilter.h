@@ -18,7 +18,7 @@
 #ifndef laa_statefilter_h
 #define laa_statefilter_h
 
-#include "../shared.h"
+#include "shared.h"
 
 /**
  * \brief Select a window filter that is run over the input

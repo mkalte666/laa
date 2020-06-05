@@ -18,7 +18,7 @@
 #ifndef laa_state_h
 #define laa_state_h
 
-#include "../shared.h"
+#include "shared.h"
 #include "statedata.h"
 #include "statefilter.h"
 

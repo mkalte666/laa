@@ -105,7 +105,7 @@ enablestrictoptions(laatool)
 
 # need those cause we dont have a find package here
 target_include_directories(laatool SYSTEM PRIVATE ${fftwInclude}
-                                                  ${rtaudioInclude})
+                                                  ${rtaudioInclude} src/)
 
 if(MINGW)
     # fix: sdl2::SDL2main doesnt work for some reason

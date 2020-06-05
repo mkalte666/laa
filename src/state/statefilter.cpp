@@ -17,7 +17,7 @@
 
 #include "statefilter.h"
 
-#include "../dsp/avg.h"
+#include "dsp/avg.h"
 
 StateFilterConfig::StateFilterConfig() noexcept
 {

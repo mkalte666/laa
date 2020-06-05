@@ -18,7 +18,7 @@
 #ifndef laa_statedata_h
 #define laa_statedata_h
 
-#include "../shared.h"
+#include "shared.h"
 
 /**
  * \brief Data of a state
