@@ -17,6 +17,7 @@
 
 #include "state.h"
 #include "../dsp/smoothing.h"
+#include "../dsp/windows.h"
 
 State::State(size_t fftLen) noexcept
 {
@@ -129,46 +130,4 @@ const StateData& State::getData() noexcept
 StateData& State::accessData() noexcept
 {
     return data;
-}
-
-StateFilterConfig::StateFilterConfig() noexcept
-{
-    avgMagnitudes.resize(LAA_MAX_FFT_AVG, RealVec());
-    for (size_t i = 0; i < LAA_MAX_FFT_AVG; i++) {
-        avgMagnitudes[i].resize(LAA_MAX_FFT_LENGTH);
-    }
-}
-void StateFilterConfig::clearAvg() noexcept
-{
-    for (size_t i = 0; i < LAA_MAX_FFT_AVG; i++) {
-        for (size_t j = 0; j < LAA_MAX_FFT_LENGTH; j++) {
-            avgMagnitudes[i][j] = 0.0;
-        }
-    }
-}
-
-void StateFilterConfig::makeAvg(RealVec& inOut, size_t fftLen) noexcept
-{
-    if (avgCount == 0) {
-        return;
-    }
-
-    if (fftLen != lastFftLen) {
-        clearAvg();
-        lastFftLen = fftLen;
-    }
-
-    for (size_t i = 0; i < fftLen; i++) {
-        avgMagnitudes[currAvg][i] = inOut[i];
-        inOut[i] = 0.0;
-        for (size_t avgI = 0; avgI < avgCount; avgI++) {
-            inOut[i] += avgMagnitudes[avgI][i];
-        }
-        inOut[i] /= static_cast<double>(avgCount);
-    }
-
-    ++currAvg;
-    if (currAvg >= avgCount) {
-        currAvg = 0;
-    }
 }

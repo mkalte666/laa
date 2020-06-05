@@ -92,6 +92,8 @@ add_executable(
     src/signalview.h
     src/state/state.cpp
     src/state/state.h
+    src/state/statedata.h
+    src/state/statefilter.cpp
     src/state/statefilter.h
     src/state/statemanager.cpp
     src/state/statemanager.h
