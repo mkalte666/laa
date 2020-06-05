@@ -61,4 +61,11 @@ const T& choose(bool arg, const T& trueArg, const T& falseArg)
 
 #define LAA_PI 3.14159265358979323846
 
+/// hardcoded maximum for fft length
+static constexpr size_t LAA_MAX_FFT_LENGTH = 131072;
+/// hardcoded minimum for fft lenght
+static constexpr size_t LAA_MIN_FFT_LENGTH = 1024;
+/// hardcoded maximum for fft filtering
+static constexpr size_t LAA_MAX_FFT_AVG = 8;
+
 #endif //laa_shared_h

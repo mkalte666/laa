@@ -22,13 +22,6 @@
 #include "dsp/windows.h"
 #include "shared.h"
 
-/// hardcoded maximum for fft length
-static constexpr size_t LAA_MAX_FFT_LENGTH = 131072;
-/// hardcoded minimum for fft lenght
-static constexpr size_t LAA_MIN_FFT_LENGTH = 1024;
-/// hardcoded maximum for fft filtering
-static constexpr size_t LAA_MAX_FFT_AVG = 8;
-
 /**
  * \brief Select a window filter that is run over the input
  */
