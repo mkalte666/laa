@@ -89,7 +89,7 @@ void State::calc(StateFilterConfig& filterConfig) noexcept
     }
 
     // filter magnitude
-    filterConfig.makeAvg(data.avgMag, data.fftLen);
+    filterConfig.filter(data.avgMag, data.fftLen);
 
     // divide our range into segments
     // estimate psd and csd over these segments

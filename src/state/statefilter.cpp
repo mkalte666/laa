@@ -35,7 +35,7 @@ void StateFilterConfig::clearAvg() noexcept
     }
 }
 
-void StateFilterConfig::makeAvg(RealVec& inOut, size_t fftLen) noexcept
+void StateFilterConfig::filter(RealVec& inOut, size_t fftLen) noexcept
 {
     if (avgCount == 0) {
         return;

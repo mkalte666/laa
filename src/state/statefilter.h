@@ -66,7 +66,7 @@ struct StateFilterConfig {
      * \param inOut the vector to operate on
      * \param fftLen the number of samples
      */
-    void makeAvg(RealVec& inOut, size_t fftLen) noexcept;
+    void filter(RealVec& inOut, size_t fftLen) noexcept;
 
     /**
      * \brief Clears all past data (on fftLen changes etc.)
