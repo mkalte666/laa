@@ -125,12 +125,10 @@ void State::calc(StateFilterConfig& filterConfig) noexcept
     // now that we know the variance, we can cut off things in the ir that are not significant
     for (size_t i = 0; i < data.fftLen; i++) {
         // we dont care about anything within std deviation
-        double irSquare = data.impulseResponse[i] * data.impulseResponse[i];
-        if (irSquare < meanIr * meanIr + varIr) {
-            if (irSquare > meanIr - varIr) {
-                data.smoothedImpulseResponse[i] = 0.0;
-                continue;
-            }
+        double distSquare = std::pow(data.impulseResponse[i] - meanIr, 2.0);
+        if (distSquare < varIr) {
+            data.smoothedImpulseResponse[i] = 0.0;
+            continue;
         }
 
         data.smoothedImpulseResponse[i] = data.impulseResponse[i];
