@@ -42,16 +42,15 @@ int AudioHandler::rtAudioCallback(void* outputBuffer, void* inputBuffer, unsigne
 {
     // callback data is this, so NOLINTNEXTLINE
     auto* handler = reinterpret_cast<AudioHandler*>(userData);
-    handler->audioCallback(outputBuffer, inputBuffer, nFrames * 2 * sizeof(float));
+    handler->audioCallback(outputBuffer, inputBuffer, nFrames * handler->config.channelCount);
 
     // why wouldn't we succeed?
     return 0;
 }
 
-void AudioHandler::audioCallback(void* out, void* in, size_t len)
+void AudioHandler::audioCallback(void* out, void* in, size_t count)
 {
     // this, combined with the rt audio callback, is a bit awkward but i have not had the time to clean it up yet
-    auto count = static_cast<size_t>(len) / sizeof(float);
     // void pointers do that. NOLINTNEXTLINE
     auto* ptr = reinterpret_cast<float*>(in);
     // void pointers do that. NOLINTNEXTLINE
@@ -74,19 +73,28 @@ void AudioHandler::audioCallback(void* out, void* in, size_t len)
     }
 
     // then we loop over samples.
-    for (auto i = 0ULL; i + 1 < count; i += 2) {
+    for (size_t i = 0; i + config.channelCount - 1 < count; i += config.channelCount) {
         // output
         // next sample scaled by the output volume. Nothing to see here really
         auto f = config.outputVolume * genNextPlaybackSample();
 
-        // id like to do this without pointer wush, but whatever
-        outPtr[i] = static_cast<float>(f); //NOLINT
-        outPtr[i + 1] = static_cast<float>(f); //NOLINT
+        // id like to do this without pointer, but whatever
+        for (size_t writeOffset = 0; writeOffset < config.channelCount; ++writeOffset) {
+            outPtr[i + writeOffset] = static_cast<float>(f); //NOLINT
+        }
 
         // input
+        float reference = 0.0F;
+        float input = 0.0F;
         // samples are coming in as flaot32, but the stream is a raw pointer.
-        auto reference = ptr[i + (config.inputAndReferenceAreSwapped ? 1 : 0)]; // NOLINT
-        auto input = ptr[i + (config.inputAndReferenceAreSwapped ? 0 : 1)]; // NOLINT
+        // also we need to decide if we have an internal or an external reference
+        if (config.channelCount == 2) { // external
+            reference = ptr[i + (config.inputAndReferenceAreSwapped ? 1 : 0)]; // NOLINT
+            input = ptr[i + (config.inputAndReferenceAreSwapped ? 0 : 1)]; // NOLINT
+        } else { // internal
+            input = ptr[i]; // NOLINT
+            reference = static_cast<float>(f); // NOLINT
+        }
         // and convert to double, as we wanna process stuff as double
         auto dReference = static_cast<double>(reference);
         auto dInput = static_cast<double>(input);

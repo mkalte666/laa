@@ -54,6 +54,8 @@ struct AudioConfig {
     unsigned int bufferFrames = defaultBufferFrames;
     /// True if output and reference are swapped on the input side
     bool inputAndReferenceAreSwapped = false;
+    /// Set to 2 for external, to 1 for internal reference
+    unsigned int channelCount = 2;
 
     /**
      * \brief Return the number of possible fft lengths

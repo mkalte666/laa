@@ -113,12 +113,22 @@ void AudioHandler::startAudio()
     sweepGenerator.setSampleRate(config.sampleRate);
     sweepGenerator.setLength(static_cast<double>(config.analysisSamples) / config.sampleRate);
 
+    // set up channel count for internal vs. external reference
+    config.playbackParams.nChannels = config.channelCount;
+    config.captureParams.nChannels = config.channelCount;
+
     // assure we are not running anymore
     stopAudio();
 
     // opens the streams. this throws if there is an error. let it crash for now.
-    rtAudio->openStream(&config.playbackParams, &config.captureParams, RTAUDIO_FLOAT32, config.sampleRate, &config.bufferFrames, &rtAudioCallback, this);
-    rtAudio->startStream();
+    try {
+        rtAudio->openStream(&config.playbackParams, &config.captureParams, RTAUDIO_FLOAT32, config.sampleRate, &config.bufferFrames, &rtAudioCallback, this);
+        rtAudio->startStream();
+    } catch (const RtAudioError& error) {
+        status = std::string("Error: ") + error.getMessage();
+        running = false;
+        return;
+    }
 
     running = true;
     status = std::string("Running");

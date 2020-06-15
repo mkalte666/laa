@@ -108,7 +108,7 @@ private:
      * \param stream
      * \param len
      */
-    void audioCallback(void* out, void* in, size_t len);
+    void audioCallback(void* out, void* in, size_t count);
 
     /**
      * \brief The static callback called by rtaudio internals

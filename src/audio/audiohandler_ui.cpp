@@ -169,14 +169,19 @@ void AudioHandler::update() noexcept
         ImGui::Checkbox("Swap Reference", &config.inputAndReferenceAreSwapped);
         ImGui::TextWrapped("First Playback");
         ImGui::InputInt("##firstPlayback", &iFirstPlayback, 1, 1);
-        config.playbackParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstPlayback), 0u, config.playbackDevice.outputChannels - 2);
-        config.captureParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstCapture), 0u, config.captureDevice.inputChannels - 2);
+
+        bool enableInternal = config.channelCount == 1;
+        ImGui::Checkbox("Internal Reference", &enableInternal);
+        config.channelCount = enableInternal ? 1 : 2; // 2 channels with reference, one without
+        config.playbackParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstPlayback), 0u, config.playbackDevice.outputChannels - config.channelCount);
+        config.captureParams.firstChannel = std::clamp(static_cast<unsigned int>(iFirstCapture), 0u, config.captureDevice.inputChannels - config.channelCount);
     } else {
         ImGui::TextWrapped("Capture Device: %s", config.captureDevice.name.c_str());
         ImGui::TextWrapped("Playback Device: %s", config.playbackDevice.name.c_str());
         ImGui::TextWrapped("Sample Rate: %d", static_cast<int>(config.sampleRate));
         ImGui::TextWrapped("First Playback: %d", static_cast<int>(config.playbackParams.firstChannel));
         ImGui::TextWrapped("First Capture: %d", static_cast<int>(config.playbackParams.firstChannel));
+        ImGui::TextWrapped("Internal Reference: %s", config.channelCount == 2 ? "no" : "yes");
         if (config.inputAndReferenceAreSwapped) {
             ImGui::TextWrapped("Input and Ref Swapped!");
         }
