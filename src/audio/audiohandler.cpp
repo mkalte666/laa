@@ -17,16 +17,6 @@
 
 #include "audiohandler.h"
 
-#if __has_include(<filesystem>)
-#include <filesystem> // exsists
-namespace fs = std::filesystem;
-#elif __has_include(<experimental/filesystem>)
-#include <experimental/filesystem> // exsists
-namespace fs = std::experimental::filesystem;
-#else
-#error "FS is needed"
-#endif
-
 template <class T>
 void clearStateQueue(std::queue<T>& q)
 {
@@ -61,10 +51,8 @@ AudioHandler::AudioHandler() noexcept
     SDL_free(pWisdomPath); // yep
 
     wisdomPath += "/fftwWisdom" + getVersionString() + ".fftw";
-    // we can only import wisdom if we exsist
-    if (fs::exists(wisdomPath)) {
-        fftw_import_wisdom_from_filename(wisdomPath.c_str());
-    }
+    // try to import wisdom. this fails gracefully if it doesn't work, so we do not care
+    static_cast<void>(fftw_import_wisdom_from_filename(wisdomPath.c_str()));
 
     // populate state pool
     // due to the nature for fftw, this might take a while...

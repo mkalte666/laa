@@ -50,8 +50,6 @@ find_path(fftwInclude "fftw3.h")
 find_library(fftwLib "fftw3")
 find_path(rtaudioInclude "rtaudio/RtAudio.h")
 find_library(rtaudioLib "rtaudio")
-# also this guy
-find_library(fslib "stdc++fs")
 
 # sources
 add_executable(
@@ -132,10 +130,6 @@ if(MINGW)
                 wmcodecdspuuid
                 dsound)
     message("Mingw builds are buggy")
-    # old g++. cmake doesnt find it but IT IS THERE
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.1)
-        target_link_libraries(laatool PRIVATE stdc++fs)
-    endif()
 else()
     target_link_libraries(
         laatool
@@ -150,11 +144,6 @@ else()
                 stdc++
                 pthread
                 ${rtaudioLib})
-    # fs lib, if exsists
-    if(fslib)
-        target_link_libraries(laatool PRIVATE ${fslib})
-    endif()
-
 endif()
 
 install(
