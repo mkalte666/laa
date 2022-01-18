@@ -3,6 +3,8 @@ A free audio analyzer.
 
 Welcome! If you just want to get this running (on windows, anyway), head over to  [Releases](https://github.com/mkalte666/laa/releases) for the current version. 
 
+You can also find some screenshots here: https://imgur.com/a/Zj3uEW3
+
 ## WINDOWS Install
 
 Head over to the [Releases](https://github.com/mkalte666/laa/releases) for the current version. 
