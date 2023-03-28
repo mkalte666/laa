@@ -27,6 +27,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <memory>
 
 /**
  * \brief Enumerize the dsp sample generators
